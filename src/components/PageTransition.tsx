@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { pageEnter, staggerContentIn } from "../utils/animations";
+import { fadeIn } from "../utils/animations";
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -16,21 +15,21 @@ const PageTransition: React.FC<PageTransitionProps> = ({
   useEffect(() => {
     if (containerRef.current) {
       // Animate the main container
-      pageEnter(containerRef.current);
-      
+      fadeIn(containerRef.current);
+
       // Animate child elements with stagger
       const childElements = containerRef.current.querySelectorAll(
-        '.card, .btn, .input, h1, h2, h3, p, .grid > div'
+        ".card, .btn, .input, h1, h2, h3, p, .grid > div"
       );
-      
+
       if (childElements.length > 0) {
         // Convert NodeList to array and filter for HTMLElements
         const elements = Array.from(childElements).filter(
           (el): el is HTMLElement => el instanceof HTMLElement
         );
-        
+
         if (elements.length > 0) {
-          staggerContentIn(elements);
+          // Stagger animation removed for now
         }
       }
     }

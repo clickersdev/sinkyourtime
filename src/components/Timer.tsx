@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, X } from "lucide-react";
+import { Play, Pause, RotateCcw, Save } from "lucide-react";
 import { gsap } from "gsap";
 import { useTimerStore } from "../stores/timerStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useProjectStore } from "../stores/projectStore";
 import {
-  timerPulse,
   progressBarFill,
   scaleIn,
   fadeIn,
-  pulse,
   buttonPress,
 } from "../utils/animations";
 import Modal from "./Modal";
@@ -25,12 +23,14 @@ const Timer: React.FC = () => {
     currentProject,
     currentCategory,
     completedPomodoros,
+    sessionStartTime,
     startTimer,
     pauseTimer,
     resetTimer,
     setMode,
     tick,
     completeSession,
+    saveCurrentSession,
     incrementPomodoros,
     setProject,
     setCategory,
@@ -54,6 +54,7 @@ const Timer: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEditingDuration, setIsEditingDuration] = useState(false);
   const [editingMinutes, setEditingMinutes] = useState(25);
+  const [isSavingSession, setIsSavingSession] = useState(false);
 
   // Format time display
   const formatTime = (seconds: number) => {
@@ -149,6 +150,30 @@ const Timer: React.FC = () => {
     }
   };
 
+  // New: Handle manual session save
+  const handleSaveSession = async () => {
+    if (!sessionStartTime) {
+      toast.error("No active session to save");
+      return;
+    }
+
+    if (!currentProject || !currentCategory) {
+      toast.error("Please select a project and category before saving");
+      return;
+    }
+
+    setIsSavingSession(true);
+    try {
+      await saveCurrentSession();
+      toast.success("Session saved successfully!");
+    } catch (error) {
+      console.error("Error saving session:", error);
+      toast.error("Failed to save session");
+    } finally {
+      setIsSavingSession(false);
+    }
+  };
+
   const playNotificationSound = () => {
     try {
       const audioContext = new (window.AudioContext ||
@@ -229,13 +254,21 @@ const Timer: React.FC = () => {
 
   // Sync with project store
   useEffect(() => {
-    if (selectedProject && selectedProject !== currentProject) {
+    if (
+      selectedProject &&
+      (!currentProject || selectedProject.id !== currentProject.id)
+    ) {
+      console.log("Setting project in timer store:", selectedProject);
       setProject(selectedProject);
     }
-    if (selectedCategory && selectedCategory !== currentCategory) {
+    if (
+      selectedCategory &&
+      (!currentCategory || selectedCategory.id !== currentCategory.id)
+    ) {
+      console.log("Setting category in timer store:", selectedCategory);
       setCategory(selectedCategory);
     }
-  }, [selectedProject, selectedCategory]);
+  }, [selectedProject, selectedCategory, currentProject, currentCategory]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -249,6 +282,9 @@ const Timer: React.FC = () => {
         }
       } else if (e.code === "KeyR") {
         resetTimer();
+      } else if (e.code === "KeyS" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleSaveSession();
       } else if (e.code === "Escape" && isFullscreen) {
         setIsFullscreen(false);
       }
@@ -256,7 +292,13 @@ const Timer: React.FC = () => {
 
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [isRunning, isFullscreen]);
+  }, [
+    isRunning,
+    isFullscreen,
+    sessionStartTime,
+    currentProject,
+    currentCategory,
+  ]);
 
   // Enhanced button click animations
   const handleStartClick = () => {
@@ -317,13 +359,13 @@ const Timer: React.FC = () => {
         onClose={() => setIsFullscreen(false)}
         timeLeft={timeLeft}
         isRunning={isRunning}
-        currentMode={currentMode}
-        completedPomodoros={completedPomodoros}
         currentProject={currentProject}
         currentCategory={currentCategory}
+        sessionStartTime={sessionStartTime}
         onStart={startTimer}
         onPause={pauseTimer}
         onReset={resetTimer}
+        onSaveSession={handleSaveSession}
         onDurationEdit={handleDurationEdit}
         formatTime={formatTime}
         getModeLabel={getModeLabel}
@@ -347,13 +389,15 @@ const Timer: React.FC = () => {
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: currentProject.color }}
             />
-            <span className="text-lg font-medium text-gray-900">
+            <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
               {currentProject.name}
             </span>
           </div>
         )}
         {currentCategory && (
-          <div className="text-sm text-gray-500">{currentCategory.name}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {currentCategory.name}
+          </div>
         )}
       </div>
 
@@ -377,14 +421,14 @@ const Timer: React.FC = () => {
           if (el) fadeIn(el, 0.3);
         }}
       >
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
           {getModeLabel()}
         </h2>
       </div>
 
       {/* Progress Bar with GSAP animation */}
       <div className="w-full max-w-md mb-8">
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             ref={progressBarRef}
             className="bg-blue-600 h-2 rounded-full"
@@ -420,19 +464,31 @@ const Timer: React.FC = () => {
           <RotateCcw size={20} />
           <span>Reset</span>
         </button>
+
+        {/* Save Session Button */}
+        {sessionStartTime && (
+          <button
+            onClick={handleSaveSession}
+            disabled={isSavingSession}
+            className="btn btn-secondary flex items-center space-x-2"
+          >
+            <Save size={20} />
+            <span>{isSavingSession ? "Saving..." : "Save Session"}</span>
+          </button>
+        )}
       </div>
 
       {/* Mode Selector with enhanced animations */}
       <div
         ref={modeSelectorRef}
-        className="flex space-x-2 bg-white rounded-lg p-1 shadow-sm border mb-8"
+        className="flex space-x-2 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border dark:border-gray-700 mb-8"
       >
         <button
           onClick={() => setMode("work")}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             currentMode === "work"
               ? "bg-blue-600 text-white"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
           Work
@@ -442,7 +498,7 @@ const Timer: React.FC = () => {
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             currentMode === "short_break"
               ? "bg-blue-600 text-white"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
           Break
@@ -452,7 +508,7 @@ const Timer: React.FC = () => {
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             currentMode === "long_break"
               ? "bg-blue-600 text-white"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
           Long Break
@@ -461,22 +517,36 @@ const Timer: React.FC = () => {
 
       {/* Pomodoro Counter with enhanced animations */}
       <div ref={pomodoroCounterRef} className="text-center mb-8">
-        <div className="text-sm text-gray-500">Completed Pomodoros</div>
-        <div className="text-2xl font-bold text-blue-600">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Completed Pomodoros
+        </div>
+        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
           {completedPomodoros}
         </div>
       </div>
 
       {/* Instructions */}
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
           Press{" "}
-          <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Space</kbd> to
-          start/pause
+          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            Space
+          </kbd>{" "}
+          to start/pause
         </p>
         <p>
-          Press <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">R</kbd>{" "}
+          Press{" "}
+          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            R
+          </kbd>{" "}
           to reset
+        </p>
+        <p>
+          Press{" "}
+          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+            Ctrl+S
+          </kbd>{" "}
+          to save session
         </p>
         <p>Double-click timer to edit duration</p>
       </div>
@@ -488,7 +558,7 @@ const Timer: React.FC = () => {
         title="Edit Timer Duration"
       >
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Duration (minutes)
           </label>
           <input

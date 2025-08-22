@@ -1,12 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { gsap } from "gsap";
-import {
-  modalBackdropIn,
-  modalBackdropOut,
-  modalContentIn,
-  modalContentOut,
-} from "../utils/animations";
 
 interface ModalProps {
   isOpen: boolean;
@@ -23,27 +16,11 @@ const Modal: React.FC<ModalProps> = ({
   title,
   className = "",
 }) => {
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const backdropRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      // Animate modal in
-      if (backdropRef.current) {
-        modalBackdropIn(backdropRef.current);
-      }
-      if (contentRef.current) {
-        modalContentIn(contentRef.current);
-      }
-    } else {
-      // Animate modal out
-      if (backdropRef.current) {
-        modalBackdropOut(backdropRef.current);
-      }
-      if (contentRef.current) {
-        modalContentOut(contentRef.current);
-      }
-    }
+    // Modal animation logic removed for now
   }, [isOpen]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {

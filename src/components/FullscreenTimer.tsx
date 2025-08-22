@@ -1,21 +1,21 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Play, Pause, RotateCcw, X } from "lucide-react";
+import { Play, Pause, RotateCcw, X, Save } from "lucide-react";
 import { gsap } from "gsap";
-import { fadeIn, pulse, buttonPress } from "../utils/animations";
+import { fadeIn, buttonPress } from "../utils/animations";
 
 interface FullscreenTimerProps {
   isOpen: boolean;
   onClose: () => void;
   timeLeft: number;
   isRunning: boolean;
-  currentMode: string;
-  completedPomodoros: number;
   currentProject?: any;
   currentCategory?: any;
+  sessionStartTime?: Date;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  onSaveSession?: () => Promise<void>;
   onDurationEdit: () => void;
   formatTime: (seconds: number) => string;
   getModeLabel: () => string;
@@ -26,13 +26,13 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
   onClose,
   timeLeft,
   isRunning,
-  currentMode,
-  completedPomodoros,
   currentProject,
   currentCategory,
+  sessionStartTime,
   onStart,
   onPause,
   onReset,
+  onSaveSession,
   onDurationEdit,
   formatTime,
   getModeLabel,
@@ -93,6 +93,16 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
     onReset();
   };
 
+  const handleSaveSession = async () => {
+    if (onSaveSession) {
+      try {
+        await onSaveSession();
+      } catch (error) {
+        console.error("Error saving session:", error);
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   const fullscreenContent = (
@@ -145,92 +155,110 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
       {/* Main content */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-5xl mx-auto px-8">
-
-
-        {/* Timer Display with enhanced styling */}
-        <div className="relative mb-12">
-          <div className="text-center">
-            <div
-              ref={timerDisplayRef}
-              className="text-7xl md:text-8xl lg:text-9xl font-extralight text-white font-mono cursor-pointer hover:opacity-90 transition-all duration-300 tracking-wider"
-              onDoubleClick={onDurationEdit}
-            >
-              {formatTime(timeLeft)}
+          {/* Timer Display with enhanced styling */}
+          <div className="relative mb-12">
+            <div className="text-center">
+              <div
+                ref={timerDisplayRef}
+                className="text-7xl md:text-8xl lg:text-9xl font-extralight text-white font-mono cursor-pointer hover:opacity-90 transition-all duration-300 tracking-wider"
+                onDoubleClick={onDurationEdit}
+              >
+                {formatTime(timeLeft)}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Timer Label with enhanced styling */}
-        <div className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-light text-white/80 tracking-wide">
-            {getModeLabel()}
-          </h2>
-        </div>
+          {/* Timer Label with enhanced styling */}
+          <div className="mb-12">
+            <h2 className="text-2xl md:text-3xl font-light text-white/80 tracking-wide">
+              {getModeLabel()}
+            </h2>
+          </div>
 
-        {/* Controls with enhanced styling */}
-        <div
-          ref={controlsRef}
-          className="flex items-center justify-center space-x-8 mb-12"
-        >
-          {isRunning ? (
-            <button
-              onClick={handlePauseClick}
-              className="group bg-red-500/90 hover:bg-red-500 text-white rounded-full p-8 transition-all duration-300 shadow-2xl hover:shadow-red-500/25 hover:scale-105"
-            >
-              <Pause
-                size={36}
-                className="group-hover:scale-110 transition-transform duration-300"
-              />
-            </button>
-          ) : (
-            <button
-              onClick={handleStartClick}
-              className="group bg-green-500/90 hover:bg-green-500 text-white rounded-full p-8 transition-all duration-300 shadow-2xl hover:shadow-green-500/25 hover:scale-105"
-            >
-              <Play
-                size={36}
-                className="group-hover:scale-110 transition-transform duration-300"
-              />
-            </button>
-          )}
-
-          <button
-            onClick={handleResetClick}
-            className="group bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-full p-6 transition-all duration-300 backdrop-blur-sm border border-white/20 hover:scale-105"
+          {/* Controls with enhanced styling */}
+          <div
+            ref={controlsRef}
+            className="flex items-center justify-center space-x-8 mb-12"
           >
-            <RotateCcw
-              size={28}
-              className="group-hover:scale-110 transition-transform duration-300"
-            />
-          </button>
-        </div>
+            {isRunning ? (
+              <button
+                onClick={handlePauseClick}
+                className="group bg-red-500/90 hover:bg-red-500 text-white rounded-full p-8 transition-all duration-300 shadow-2xl hover:shadow-red-500/25 hover:scale-105"
+              >
+                <Pause
+                  size={36}
+                  className="group-hover:scale-110 transition-transform duration-300"
+                />
+              </button>
+            ) : (
+              <button
+                onClick={handleStartClick}
+                className="group bg-green-500/90 hover:bg-green-500 text-white rounded-full p-8 transition-all duration-300 shadow-2xl hover:shadow-green-500/25 hover:scale-105"
+              >
+                <Play
+                  size={36}
+                  className="group-hover:scale-110 transition-transform duration-300"
+                />
+              </button>
+            )}
 
+            <button
+              onClick={handleResetClick}
+              className="group bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-full p-6 transition-all duration-300 backdrop-blur-sm border border-white/20 hover:scale-105"
+            >
+              <RotateCcw
+                size={28}
+                className="group-hover:scale-110 transition-transform duration-300"
+              />
+            </button>
 
-
-        {/* Instructions with enhanced styling */}
-        <div className="text-sm text-white/50 space-y-2">
-          <div className="flex items-center justify-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
-                Space
-              </kbd>
-              <span>start/pause</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
-                R
-              </kbd>
-              <span>reset</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
-                Esc
-              </kbd>
-              <span>exit</span>
-            </div>
+            {/* Save Session Button */}
+            {sessionStartTime && onSaveSession && (
+              <button
+                onClick={handleSaveSession}
+                className="group bg-blue-500/90 hover:bg-blue-500 text-white rounded-full p-6 transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 hover:scale-105"
+              >
+                <Save
+                  size={28}
+                  className="group-hover:scale-110 transition-transform duration-300"
+                />
+              </button>
+            )}
           </div>
-          <div className="text-center">
-            <span>Double-click timer to edit duration</span>
+
+          {/* Instructions with enhanced styling */}
+          <div className="text-sm text-white/50 space-y-2">
+            <div className="flex items-center justify-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                  Space
+                </kbd>
+                <span>start/pause</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                  R
+                </kbd>
+                <span>reset</span>
+              </div>
+              {sessionStartTime && onSaveSession && (
+                <div className="flex items-center space-x-2">
+                  <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                    Ctrl+S
+                  </kbd>
+                  <span>save session</span>
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <kbd className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                  Esc
+                </kbd>
+                <span>exit</span>
+              </div>
+            </div>
+            <div className="text-center">
+              <span>Double-click timer to edit duration</span>
+            </div>
           </div>
         </div>
       </div>

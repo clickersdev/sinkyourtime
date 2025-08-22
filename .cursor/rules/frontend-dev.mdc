@@ -88,7 +88,7 @@ Follow these rules when you write code:
 **Agent Guidelines**
 
 - Always look up the latest documentation.
-- After finishing your job as an agent, generate a git commit command with a descriptive message. DO NOT RUN THIS COMMAND, JUST GENERATE IT.
+- After finishing your job as an agent, generate a git commit command with a descriptive message. Make it as long as it needs to be, don't force more message than the commit needs. DO NOT RUN THIS COMMAND, JUST GENERATE IT.
 - When the user gives you a prompt, always plan the feature/request out first in a To-Do list, and then execute.
 
 ---

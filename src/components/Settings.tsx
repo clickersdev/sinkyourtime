@@ -22,6 +22,19 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     theme: settings.theme,
   });
 
+  // Update form data when settings change
+  React.useEffect(() => {
+    setFormData({
+      workDuration: settings.workDuration,
+      shortBreakDuration: settings.shortBreakDuration,
+      longBreakDuration: settings.longBreakDuration,
+      longBreakInterval: settings.longBreakInterval,
+      audioEnabled: settings.audioEnabled,
+      notificationsEnabled: settings.notificationsEnabled,
+      theme: settings.theme,
+    });
+  }, [settings]);
+
   const handleSave = async () => {
     try {
       await updateSettings(formData);
@@ -54,7 +67,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (
+    field: string,
+    value: string | number | boolean
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

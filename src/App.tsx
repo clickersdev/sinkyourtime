@@ -26,6 +26,7 @@ import PageTransition from "./components/PageTransition";
 import { useProjectStore } from "./stores/projectStore";
 import { useSettingsStore } from "./stores/settingsStore";
 import { initializeDatabase } from "./services/database";
+import { initializeTheme, toggleTheme, getCurrentTheme } from "./utils/theme";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -86,6 +87,17 @@ const Navigation: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Theme toggle button for testing */}
+              <button
+                onClick={() => {
+                  console.log("Current theme:", getCurrentTheme());
+                  toggleTheme();
+                }}
+                className="px-3 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Toggle Theme
+              </button>
+
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 const Icon = item.icon;
@@ -542,16 +554,27 @@ const App: React.FC = () => {
   const { loadProjects } = useProjectStore();
   const { loadSettings } = useSettingsStore();
 
+  // Initialize theme immediately on app start
+  useEffect(() => {
+    initializeTheme();
+  }, []);
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        console.log("Starting app initialization...");
+
         // Initialize database
         await initializeDatabase();
+        console.log("Database initialized successfully");
 
         // Load initial data
+        console.log("Loading projects and settings...");
         await Promise.all([loadProjects(), loadSettings()]);
+        console.log("Projects and settings loaded successfully");
 
         setIsInitialized(true);
+        console.log("App initialization completed");
       } catch (error) {
         console.error("Error initializing app:", error);
         setIsInitialized(true); // Still set to true to show the app

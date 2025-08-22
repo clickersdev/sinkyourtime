@@ -13,12 +13,11 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { gsap } from 'gsap';
 import { Calendar, Clock, Target, TrendingUp } from "lucide-react";
-import { sessionService } from "../services/database";
-import type { TimerSession } from "../types";
 import { useProjectStore } from "../stores/projectStore";
-import { staggerFadeIn, fadeIn } from '../utils/animations';
+import { sessionService } from "../services/database";
+import { fadeIn } from "../utils/animations";
+import type { TimerSession } from "../types";
 
 const COLORS = [
   "#3b82f6",
@@ -59,14 +58,6 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
     }
   }, []);
 
-  // Animate chart data when it loads
-  const animateChartData = (chartElement: HTMLElement) => {
-    gsap.fromTo(chartElement,
-      { scaleY: 0 },
-      { scaleY: 1, duration: 0.8, ease: "power2.out" }
-    );
-  };
-
   const loadSessions = async () => {
     try {
       setIsLoading(true);
@@ -85,16 +76,25 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
           break;
       }
 
+      console.log("Loading sessions for date range:", {
+        startDate,
+        endDate,
+        projectId,
+      });
+
       const sessionsData = await sessionService.getByDateRange(
         startDate,
         endDate
       );
-      
+
+      console.log("Raw sessions data:", sessionsData);
+
       // Filter by project if projectId is provided
-      const filteredSessions = projectId 
-        ? sessionsData.filter(s => s.projectId === projectId)
+      const filteredSessions = projectId
+        ? sessionsData.filter((s) => s.projectId === projectId)
         : sessionsData;
-        
+
+      console.log("Filtered sessions:", filteredSessions);
       setSessions(filteredSessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
@@ -114,25 +114,27 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
       workSessions.length > 0 ? totalFocusedTime / workSessions.length : 0;
 
     // Project breakdown (only if not viewing a specific project)
-    const projectBreakdown = projectId ? [] : projects
-      .map((project) => {
-        const projectSessions = workSessions.filter(
-          (s) => s.projectId === project.id
-        );
-        const totalTime =
-          projectSessions.reduce(
-            (sum, session) => sum + session.actualDuration,
-            0
-          ) /
-          (1000 * 60);
-        return {
-          name: project.name,
-          time: Math.round(totalTime),
-          sessions: projectSessions.length,
-          color: project.color,
-        };
-      })
-      .filter((p) => p.time > 0);
+    const projectBreakdown = projectId
+      ? []
+      : projects
+          .map((project) => {
+            const projectSessions = workSessions.filter(
+              (s) => s.projectId === project.id
+            );
+            const totalTime =
+              projectSessions.reduce(
+                (sum, session) => sum + session.actualDuration,
+                0
+              ) /
+              (1000 * 60);
+            return {
+              name: project.name,
+              time: Math.round(totalTime),
+              sessions: projectSessions.length,
+              color: project.color,
+            };
+          })
+          .filter((p) => p.time > 0);
 
     // Category breakdown
     const categoryMap = new Map<
@@ -213,7 +215,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {projectId ? "Project Analytics" : "Analytics"}
         </h2>
         <div className="flex space-x-2">
@@ -251,10 +253,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
       </div>
 
       {/* Key Metrics */}
-      <div 
-        ref={statsRef}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6"
-      >
+      <div ref={statsRef} className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="card">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -262,7 +261,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-500">Total Focus Time</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {data.totalFocusedTime}m
               </p>
             </div>
@@ -276,7 +275,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-500">Completed Pomodoros</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {data.completedPomodoros}
               </p>
             </div>
@@ -290,7 +289,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-500">Avg Session Length</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {data.averageSessionLength}m
               </p>
             </div>
@@ -304,7 +303,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-500">Total Sessions</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {sessions.filter((s) => s.type === "work").length}
               </p>
             </div>
@@ -313,14 +312,11 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
       </div>
 
       {/* Charts */}
-      <div 
-        ref={chartsRef}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-      >
+      <div ref={chartsRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Project Breakdown (only show if not viewing a specific project) */}
         {!projectId && data.projectBreakdown.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Time by Project
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -352,7 +348,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
 
         {data.categoryBreakdown.length > 0 && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Time by Category
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -371,7 +367,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
       {/* Daily Progress */}
       {data.dailyBreakdown.length > 0 && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Daily Progress
           </h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -397,14 +393,13 @@ const Analytics: React.FC<AnalyticsProps> = ({ projectId }) => {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
             No data available
           </h3>
           <p className="text-gray-500">
-            {projectId 
+            {projectId
               ? "Start your first Pomodoro session for this project to see analytics here."
-              : "Start your first Pomodoro session to see your analytics here."
-            }
+              : "Start your first Pomodoro session to see your analytics here."}
           </p>
         </div>
       )}

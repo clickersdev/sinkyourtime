@@ -9,6 +9,22 @@
       content="Sink Your Time - A Pomodoro-style productivity timer with project tracking and analytics"
     />
     <title>Sink Your Time - Productivity Timer</title>
+    <script>
+      // Prevent flash of unstyled content by applying theme immediately
+      (function() {
+        const theme = localStorage.getItem('theme') || 'system';
+        const root = document.documentElement;
+        
+        if (theme === 'dark') {
+          root.classList.add('dark');
+        } else if (theme === 'system') {
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (isDark) {
+            root.classList.add('dark');
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
