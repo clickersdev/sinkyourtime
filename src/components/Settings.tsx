@@ -71,19 +71,19 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       {/* Content */}
       <div className="p-6 space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
         {/* Timer Settings */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             Timer Settings
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Work Duration (minutes)
               </label>
               <input
@@ -99,7 +99,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Short Break Duration (minutes)
               </label>
               <input
@@ -118,7 +118,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Long Break Duration (minutes)
               </label>
               <input
@@ -137,7 +137,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Long Break Interval (pomodoros)
               </label>
               <input
@@ -153,7 +153,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 }
                 className="input"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Take a long break after this many completed work sessions
               </p>
             </div>
@@ -162,16 +162,16 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
         {/* Notification Settings */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             Notifications
           </h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Sound Notifications
                 </label>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Play sound when timer completes
                 </p>
               </div>
@@ -190,10 +190,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Browser Notifications
                 </label>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Show browser notifications when timer completes
                 </p>
               </div>
@@ -206,7 +206,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500"></div>
               </label>
             </div>
           </div>
@@ -214,9 +214,11 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
         {/* Theme Settings */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Appearance</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+            Appearance
+          </h3>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Theme
             </label>
             <select
@@ -228,7 +230,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               <option value="dark">Dark</option>
               <option value="system">System</option>
             </select>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Choose your preferred theme
             </p>
           </div>
@@ -236,7 +238,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between p-6 border-t border-gray-200">
+      <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={handleReset}
           className="btn btn-secondary flex items-center space-x-2"

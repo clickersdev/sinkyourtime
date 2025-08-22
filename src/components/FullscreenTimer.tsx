@@ -96,17 +96,18 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
   if (!isOpen) return null;
 
   const fullscreenContent = (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 z-[9999] flex flex-col">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
       </div>
 
-      <div className="relative text-center max-w-5xl mx-auto px-8 py-12">
-        {/* Project Info with enhanced styling */}
+      {/* Header with project info and close button */}
+      <div className="relative flex items-center justify-between px-8 py-6">
+        {/* Project Info */}
         {currentProject && (
           <div
-            className="mb-12"
+            className="flex items-center space-x-4 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20"
             ref={(el) => {
               if (el && !el.dataset.animated) {
                 el.dataset.animated = "true";
@@ -114,25 +115,37 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
               }
             }}
           >
-            <div className="inline-flex items-center space-x-4 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-              <div
-                className="w-4 h-4 rounded-full shadow-lg"
-                style={{ backgroundColor: currentProject.color }}
-              />
-              <span className="text-lg font-medium text-white/90">
-                {currentProject.name}
-              </span>
-              {currentCategory && (
-                <>
-                  <div className="w-1 h-1 bg-white/40 rounded-full"></div>
-                  <span className="text-sm text-white/70">
-                    {currentCategory.name}
-                  </span>
-                </>
-              )}
-            </div>
+            <div
+              className="w-4 h-4 rounded-full shadow-lg"
+              style={{ backgroundColor: currentProject.color }}
+            />
+            <span className="text-lg font-medium text-white/90">
+              {currentProject.name}
+            </span>
+            {currentCategory && (
+              <>
+                <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                <span className="text-sm text-white/70">
+                  {currentCategory.name}
+                </span>
+              </>
+            )}
           </div>
         )}
+
+        {/* Exit Fullscreen */}
+        <button
+          onClick={onClose}
+          className="p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300 backdrop-blur-sm border border-white/10 hover:scale-110"
+        >
+          <X size={24} />
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center max-w-5xl mx-auto px-8">
+
 
         {/* Timer Display with enhanced styling */}
         <div className="relative mb-12">
@@ -192,25 +205,7 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
           </button>
         </div>
 
-        {/* Pomodoro Counter with enhanced styling */}
-        <div className="mb-12">
-          <div className="inline-flex flex-col items-center px-8 py-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
-            <div className="text-sm text-white/60 font-medium tracking-wide mb-2">
-              Completed Pomodoros
-            </div>
-            <div className="text-4xl font-light text-white">
-              {completedPomodoros}
-            </div>
-          </div>
-        </div>
 
-        {/* Exit Fullscreen with enhanced styling */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300 backdrop-blur-sm border border-white/10 hover:scale-110"
-        >
-          <X size={24} />
-        </button>
 
         {/* Instructions with enhanced styling */}
         <div className="text-sm text-white/50 space-y-2">

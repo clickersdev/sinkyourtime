@@ -54,21 +54,21 @@ const Navigation: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               {isProjectPage && (
                 <Link
                   to="/"
-                  className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 mr-4"
+                  className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mr-4"
                 >
                   <ArrowLeft size={20} />
                   <span className="text-sm">Back to Projects</span>
                 </Link>
               )}
               <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Sink Your Time
                 </h1>
                 {currentProject && isProjectPage && (
@@ -77,7 +77,7 @@ const Navigation: React.FC = () => {
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: currentProject.color }}
                     />
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {currentProject.name}
                     </span>
                   </div>
@@ -95,8 +95,8 @@ const Navigation: React.FC = () => {
                     to={item.path}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
                     <Icon size={16} />
@@ -107,7 +107,7 @@ const Navigation: React.FC = () => {
 
               <button
                 onClick={() => setShowSettings(true)}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <Settings size={20} />
               </button>
@@ -140,7 +140,9 @@ const ProjectDetailPage: React.FC = () => {
   if (!currentProject) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Project not found</div>
+        <div className="text-gray-500 dark:text-gray-400">
+          Project not found
+        </div>
       </div>
     );
   }
@@ -156,12 +158,14 @@ const ProjectDetailPage: React.FC = () => {
                 className="w-6 h-6 rounded-full"
                 style={{ backgroundColor: currentProject.color }}
               />
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {currentProject.name}
               </h2>
             </div>
             {currentProject.description && (
-              <p className="text-gray-600 mb-4">{currentProject.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {currentProject.description}
+              </p>
             )}
             <CategorySelector />
           </div>
@@ -192,7 +196,9 @@ const ProjectAnalyticsPage: React.FC = () => {
   if (!currentProject) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Project not found</div>
+        <div className="text-gray-500 dark:text-gray-400">
+          Project not found
+        </div>
       </div>
     );
   }
@@ -205,12 +211,14 @@ const ProjectAnalyticsPage: React.FC = () => {
             className="w-8 h-8 rounded-full"
             style={{ backgroundColor: currentProject.color }}
           />
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {currentProject.name} - Analytics
           </h1>
         </div>
         {currentProject.description && (
-          <p className="text-gray-600 mt-2">{currentProject.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {currentProject.description}
+          </p>
         )}
       </div>
       <Analytics projectId={projectId} />
@@ -234,7 +242,9 @@ const ProjectOverviewPage: React.FC = () => {
   if (!currentProject) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Project not found</div>
+        <div className="text-gray-500 dark:text-gray-400">
+          Project not found
+        </div>
       </div>
     );
   }
@@ -316,22 +326,26 @@ const CategorySelector: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Category
         </label>
 
         <div className="relative">
           <button
             onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           >
             <span
-              className={currentCategory ? "text-gray-900" : "text-gray-500"}
+              className={
+                currentCategory
+                  ? "text-gray-900 dark:text-gray-100"
+                  : "text-gray-500 dark:text-gray-400"
+              }
             >
               {currentCategory ? currentCategory.name : "Select a category"}
             </span>
             <svg
-              className="w-5 h-5 text-gray-400"
+              className="w-5 h-5 text-gray-400 dark:text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -346,18 +360,18 @@ const CategorySelector: React.FC = () => {
           </button>
 
           {isCategoryDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               {currentProject.categories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50"
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <button
                     onClick={() => {
                       setCurrentCategory(category);
                       setIsCategoryDropdownOpen(false);
                     }}
-                    className="flex-1 text-left font-medium text-gray-900"
+                    className="flex-1 text-left font-medium text-gray-900 dark:text-gray-100"
                   >
                     {category.name}
                   </button>
@@ -365,7 +379,7 @@ const CategorySelector: React.FC = () => {
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={() => openEditCategory(category)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
+                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                     >
                       <svg
                         className="w-4 h-4"
@@ -383,7 +397,7 @@ const CategorySelector: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(category)}
-                      className="p-1 text-gray-400 hover:text-red-600"
+                      className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                     >
                       <svg
                         className="w-4 h-4"
@@ -403,13 +417,13 @@ const CategorySelector: React.FC = () => {
                 </div>
               ))}
 
-              <div className="border-t border-gray-200 p-3">
+              <div className="border-t border-gray-200 dark:border-gray-700 p-3">
                 <button
                   onClick={() => {
                     setShowCategoryForm(true);
                     setIsCategoryDropdownOpen(false);
                   }}
-                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                  className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   <svg
                     className="w-4 h-4"
@@ -435,8 +449,8 @@ const CategorySelector: React.FC = () => {
       {/* Category Form Modal */}
       {showCategoryForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
               {editingCategory ? "Edit Category" : "Create New Category"}
             </h3>
 
@@ -446,7 +460,7 @@ const CategorySelector: React.FC = () => {
               }
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category Name *
                 </label>
                 <input
@@ -556,7 +570,7 @@ const App: React.FC = () => {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div
           className="text-center"
           ref={(el) => {
@@ -570,7 +584,9 @@ const App: React.FC = () => {
           }}
         >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Sink Your Time...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading Sink Your Time...
+          </p>
         </div>
       </div>
     );
@@ -578,7 +594,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navigation />
         <main>
           <AnimatedRoutes />

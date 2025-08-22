@@ -202,13 +202,12 @@ const Timer: React.FC = () => {
     }
   }, [progress]);
 
-  // Handle fullscreen mode
+  // Handle fullscreen mode - only enter fullscreen when starting, don't exit when pausing
   useEffect(() => {
     if (isRunning && !isFullscreen) {
       setIsFullscreen(true);
-    } else if (!isRunning && isFullscreen) {
-      setIsFullscreen(false);
     }
+    // Removed automatic exit when pausing - user now has full control
   }, [isRunning]);
 
   // Timer interval effect

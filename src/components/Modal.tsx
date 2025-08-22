@@ -71,15 +71,17 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={contentRef}
-        className={`bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full mx-4 border border-white/20 ${className}`}
+        className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full mx-4 border border-white/20 dark:border-gray-700/50 ${className}`}
         style={{
           opacity: 0,
           transform: "scale(0.9) translateY(20px)",
         }}
       >
         {title && (
-          <div className="px-6 py-4 border-b border-gray-200/50">
-            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+          <div className="px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              {title}
+            </h3>
           </div>
         )}
         <div className="p-6">{children}</div>
