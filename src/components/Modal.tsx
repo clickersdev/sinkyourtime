@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { gsap } from "gsap";
-import { 
-  modalBackdropIn, 
-  modalBackdropOut, 
-  modalContentIn, 
-  modalContentOut 
+import {
+  modalBackdropIn,
+  modalBackdropOut,
+  modalContentIn,
+  modalContentOut,
 } from "../utils/animations";
 
 interface ModalProps {
@@ -15,12 +16,12 @@ interface ModalProps {
   className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  children, 
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
   title,
-  className = "" 
+  className = "",
 }) => {
   const backdropRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -59,10 +60,10 @@ const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
       ref={backdropRef}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-[9999]"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       tabIndex={-1}
@@ -70,23 +71,24 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={contentRef}
-        className={`bg-white rounded-lg shadow-xl max-w-md w-full mx-4 ${className}`}
-        style={{ 
-          opacity: 0, 
-          transform: 'scale(0.9) translateY(20px)' 
+        className={`bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full mx-4 border border-white/20 ${className}`}
+        style={{
+          opacity: 0,
+          transform: "scale(0.9) translateY(20px)",
         }}
       >
         {title && (
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200/50">
             <h3 className="text-lg font-medium text-gray-900">{title}</h3>
           </div>
         )}
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
+
+  // Use portal to render at document.body level
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;
