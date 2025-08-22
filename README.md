@@ -1,164 +1,166 @@
-# Focus Timer - Clean & Minimal
+# Sink Your Time - Productivity Timer
 
-A beautiful, clean, and minimal focus timer web app perfect for your second monitor. Features smooth animations, customizable settings, and a distraction-free interface.
+A modern, feature-rich Pomodoro-style productivity timer built with React, TypeScript, and Tailwind CSS. Track your time across different projects and categories while gaining insights into your productivity patterns.
 
-## ✨ Features
+## Features
 
-### 🎯 Core Timer
+### 🍅 Pomodoro Timer System
 
-- **Work Timer**: Default 25-minute Pomodoro work sessions
-- **Break Timer**: Default 5-minute short breaks
-- **Long Break Timer**: Default 15-minute long breaks
-- **Smooth Progress Ring**: Visual circular progress indicator
-- **Large, Readable Display**: Perfect for second monitor viewing
-- **Fullscreen Mode**: Timer expands to cover entire screen when running
+- Customizable work intervals (default: 25 minutes)
+- Short and long break periods
+- Automatic long breaks after configurable pomodoro cycles
+- Audio notifications and browser notifications
+- Visual progress indicators
+- Keyboard shortcuts (Space: Start/Pause, R: Reset)
 
-### 🎨 Design & Animations
+### 📊 Project Management
 
-- **Clean, Minimal Interface**: Distraction-free design
-- **Smooth Animations**: Fade-in/out effects and pulse animations
-- **Customizable Theme**: Change the primary color to match your style
-- **Responsive Design**: Works on all screen sizes
-- **Dark Mode Support**: Automatically adapts to system preferences
+- Create and manage up to 10 projects
+- Color-coded project organization
+- Project-specific categories
+- Default categories: Development, Marketing, Design, Planning, Meetings, Research, Administration
+- Add, edit, and delete projects and categories
+
+### ⏱️ Time Tracking
+
+- Automatic session logging
+- Track planned vs actual time spent
+- Session completion status
+- Data persistence using IndexedDB
+- Export functionality (coming soon)
+
+### 📈 Analytics & Insights
+
+- Daily, weekly, and monthly time breakdowns
+- Project and category time distribution
+- Productivity trends and patterns
+- Interactive charts and visualizations
+- Key metrics: total focus time, completed pomodoros, average session length
 
 ### ⚙️ Customization
 
-- **Adjustable Durations**: Customize work, break, and long break times
-- **Auto-start Breaks**: Automatically start break timers when work sessions end
-- **Sound Notifications**: Built-in audio alerts when timers complete
-- **Browser Notifications**: Desktop notifications (with permission)
-- **Settings Persistence**: All settings saved to localStorage
+- Adjustable timer durations
+- Theme selection (light, dark, system)
+- Audio and notification preferences
+- Auto-start breaks option
+- Long break interval configuration
 
-### ⌨️ Keyboard Shortcuts
+## Tech Stack
 
-- **Spacebar**: Start/Pause timer
-- **R**: Reset timer
-- **S**: Open/Close settings
-- **Escape**: Exit fullscreen mode (when timer is running)
+- **Frontend**: React 18 + TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **Routing**: React Router DOM
+- **Database**: Dexie.js (IndexedDB wrapper)
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Notifications**: React Hot Toast
+- **Build Tool**: Vite
 
-## 🚀 Getting Started
+## Getting Started
 
-1. **Open the App**: Simply open `index.html` in your web browser
-2. **Grant Permissions**: Allow notifications when prompted for the best experience
-3. **Customize Settings**: Click the gear icon (⚙️) to adjust timer durations and preferences
-4. **Start Focusing**: Click "Start" or press Spacebar to begin your work session
+### Prerequisites
 
-## 🎛️ Settings
+- Node.js 16+
+- npm or yarn
 
-### Timer Durations
+### Installation
 
-- **Work Duration**: 1-120 minutes (default: 25)
-- **Break Duration**: 1-60 minutes (default: 5)
-- **Long Break Duration**: 1-120 minutes (default: 15)
+1. Clone the repository:
 
-### Preferences
-
-- **Auto-start Breaks**: Automatically begin break timers after work sessions
-- **Sound Notifications**: Play audio alerts when timers complete
-- **Theme Color**: Customize the primary color of the interface
-
-## 🎯 Usage Tips
-
-### For Second Monitor
-
-- Open the app in a dedicated browser window
-- Position it on your second monitor for easy visibility
-- The large timer display is perfect for glancing at from a distance
-- **Fullscreen mode** automatically activates when you start the timer, creating an immersive focus experience
-
-### Focus Workflow
-
-1. **Start Work Session**: Begin with a 25-minute work timer
-2. **Take Short Breaks**: Use 5-minute breaks between work sessions
-3. **Long Breaks**: Take 15-minute breaks after 4 work sessions
-4. **Stay Consistent**: Use the auto-start feature to maintain flow
-
-### Customization Ideas
-
-- **Short Work Sessions**: Set work duration to 15-20 minutes for intense focus
-- **Longer Breaks**: Increase break duration for more relaxed sessions
-- **Color Coding**: Use different theme colors for different types of work
-
-## 🛠️ Technical Details
-
-### Built With
-
-- **HTML5**: Semantic markup structure
-- **CSS3**: Modern styling with CSS Grid and Flexbox
-- **Vanilla JavaScript**: No frameworks, pure ES6+ code
-- **Web Audio API**: Built-in notification sounds
-- **LocalStorage**: Settings persistence
-
-### Browser Support
-
-- Chrome/Edge (recommended)
-- Firefox
-- Safari
-- Mobile browsers (responsive design)
-
-### File Structure
-
-```
-focus-timer/
-├── index.html      # Main HTML structure
-├── styles.css      # Clean, minimal styling
-├── script.js       # Timer functionality
-└── README.md       # This file
+```bash
+git clone <repository-url>
+cd sinkyourtime
 ```
 
-## 🎨 Customization Examples
+2. Install dependencies:
 
-### Different Color Themes
+```bash
+npm install
+```
 
-- **Blue**: `#3b82f6` (Professional)
-- **Purple**: `#8b5cf6` (Creative)
-- **Green**: `#10b981` (Productive)
-- **Orange**: `#f59e0b` (Energetic)
-- **Pink**: `#ec4899` (Playful)
+3. Start the development server:
 
-### Timer Presets
+```bash
+npm run dev
+```
 
-- **Classic Pomodoro**: 25/5/15
-- **Short Sessions**: 15/3/10
-- **Long Sessions**: 45/10/20
-- **Ultra Focus**: 90/15/30
+4. Open your browser and navigate to `http://localhost:5173`
 
-## 🔧 Troubleshooting
+### Building for Production
 
-### Notifications Not Working
+```bash
+npm run build
+```
 
-- Ensure you've granted notification permissions
-- Check browser settings for notification blocking
-- Try refreshing the page and granting permissions again
+The built files will be in the `dist` directory.
 
-### Settings Not Saving
+## Usage
 
-- Check if localStorage is enabled in your browser
-- Try clearing browser cache and refreshing
-- Ensure you're not in incognito/private browsing mode
+### First Time Setup
 
-### Audio Not Playing
+1. The app will automatically create a default project with predefined categories
+2. Select a project and category to start your first timer session
+3. Configure your preferences in the Settings panel
 
-- Some browsers require user interaction before playing audio
-- Click anywhere on the page before starting the timer
-- Check browser audio settings
+### Using the Timer
 
-## 📱 Mobile Usage
+1. **Select Project & Category**: Choose from the dropdown menus in the left panel
+2. **Start Timer**: Click the Start button or press Space
+3. **Take Breaks**: The app will automatically suggest breaks after work sessions
+4. **Track Progress**: View your analytics in the Analytics tab
 
-The app is fully responsive and works great on mobile devices:
+### Keyboard Shortcuts
 
-- Touch-friendly buttons
-- Optimized layout for small screens
-- Same functionality as desktop version
+- `Space`: Start/Pause timer
+- `R`: Reset timer
+- `Esc`: Pause timer (when running)
 
-## 🤝 Contributing
+## Data Management
 
-Feel free to customize and modify this timer for your own use! The code is clean, well-commented, and easy to extend.
+### Local Storage
 
-## 📄 License
+All data is stored locally in your browser using IndexedDB:
 
-This project is open source and available under the MIT License.
+- Timer sessions and history
+- Project and category data
+- User settings and preferences
+
+### Data Export (Coming Soon)
+
+- Export sessions as CSV
+- Export analytics as PDF
+- Data backup and restore functionality
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Inspired by the Pomodoro Technique
+- Built with modern web technologies
+- Designed for productivity and focus
+
+## Support
+
+If you encounter any issues or have questions, please open an issue on GitHub.
 
 ---
 
-**Happy focusing! 🎯**
+**Sink Your Time** - Make every minute count! 🚀
