@@ -105,3 +105,94 @@ export const pageTransitionOut = (element: HTMLElement) => {
     ease: "power2.in"
   });
 };
+
+// Modal animations
+export const modalBackdropIn = (element: HTMLElement) => {
+  return gsap.fromTo(element,
+    { opacity: 0 },
+    { opacity: 1, duration: 0.2, ease: "power2.out" }
+  );
+};
+
+export const modalBackdropOut = (element: HTMLElement) => {
+  return gsap.to(element, {
+    opacity: 0,
+    duration: 0.2,
+    ease: "power2.in"
+  });
+};
+
+export const modalContentIn = (element: HTMLElement, delay = 0.1) => {
+  return gsap.fromTo(element,
+    { 
+      opacity: 0, 
+      scale: 0.9, 
+      y: 20 
+    },
+    { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0, 
+      duration: 0.3, 
+      ease: "back.out(1.7)",
+      delay 
+    }
+  );
+};
+
+export const modalContentOut = (element: HTMLElement) => {
+  return gsap.to(element, {
+    opacity: 0,
+    scale: 0.9,
+    y: -20,
+    duration: 0.2,
+    ease: "power2.in"
+  });
+};
+
+// Enhanced page transitions with exit animations
+export const pageEnter = (element: HTMLElement) => {
+  return gsap.fromTo(element,
+    { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.98
+    },
+    { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      duration: 0.4, 
+      ease: "power2.out" 
+    }
+  );
+};
+
+export const pageExit = (element: HTMLElement) => {
+  return gsap.to(element, {
+    opacity: 0,
+    y: -20,
+    scale: 0.98,
+    duration: 0.3,
+    ease: "power2.in"
+  });
+};
+
+// Staggered content animations
+export const staggerContentIn = (elements: HTMLElement[], stagger = 0.08) => {
+  return gsap.fromTo(elements,
+    { 
+      opacity: 0, 
+      y: 25,
+      scale: 0.95
+    },
+    { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      stagger,
+      duration: 0.4, 
+      ease: "power2.out" 
+    }
+  );
+};

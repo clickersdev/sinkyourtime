@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, X } from "lucide-react";
-import { gsap } from 'gsap';
+import { gsap } from "gsap";
 import { useTimerStore } from "../stores/timerStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useProjectStore } from "../stores/projectStore";
-import { 
-  timerPulse, 
-  progressBarFill, 
-  scaleIn, 
+import {
+  timerPulse,
+  progressBarFill,
+  scaleIn,
   fadeIn,
-  pulse 
+  pulse,
 } from "../utils/animations";
+import Modal from "./Modal";
+import FullscreenTimer from "./FullscreenTimer";
 import toast from "react-hot-toast";
 
 const Timer: React.FC = () => {
@@ -91,7 +93,7 @@ const Timer: React.FC = () => {
         duration: 0.3,
         yoyo: true,
         repeat: 1,
-        ease: "back.out(1.7)"
+        ease: "back.out(1.7)",
       });
     }
 
@@ -280,7 +282,7 @@ const Timer: React.FC = () => {
       gsap.to(controlsRef.current, {
         rotation: 360,
         duration: 0.5,
-        ease: "power2.out"
+        ease: "power2.out",
       });
     }
     resetTimer();
@@ -309,116 +311,22 @@ const Timer: React.FC = () => {
   // Fullscreen timer component
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-50 flex items-center justify-center">
-        <div className="text-center max-w-2xl mx-auto px-8">
-          {/* Project Info with fade-in */}
-          {currentProject && (
-            <div 
-              className="mb-8"
-              ref={(el) => {
-                if (el) fadeIn(el, 0.1);
-              }}
-            >
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                <div
-                  className="w-6 h-6 rounded-full"
-                  style={{ backgroundColor: currentProject.color }}
-                />
-                <span className="text-xl font-semibold text-gray-800">
-                  {currentProject.name}
-                </span>
-              </div>
-              {currentCategory && (
-                <p className="text-gray-600">{currentCategory.name}</p>
-              )}
-            </div>
-          )}
-
-          {/* Timer Display with enhanced animations */}
-          <div className="relative mb-8">
-            <div className="text-center">
-              <div
-                ref={timerDisplayRef}
-                className="text-8xl md:text-9xl font-light text-gray-900 font-mono cursor-pointer hover:opacity-80 transition-opacity"
-                onDoubleClick={handleDurationEdit}
-              >
-                {formatTime(timeLeft)}
-              </div>
-            </div>
-          </div>
-
-          {/* Timer Label */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              {getModeLabel()}
-            </h2>
-          </div>
-
-          {/* Controls with enhanced animations */}
-          <div 
-            ref={controlsRef}
-            className="flex items-center justify-center space-x-6 mb-8"
-          >
-            {isRunning ? (
-              <button
-                onClick={handlePauseClick}
-                className="bg-red-500 hover:bg-red-600 text-white rounded-full p-6 transition-colors"
-              >
-                <Pause size={32} />
-              </button>
-            ) : (
-              <button
-                onClick={handleStartClick}
-                className="bg-green-500 hover:bg-green-600 text-white rounded-full p-6 transition-colors"
-              >
-                <Play size={32} />
-              </button>
-            )}
-
-            <button
-              onClick={handleResetClick}
-              className="bg-gray-500 hover:bg-gray-600 text-white rounded-full p-4 transition-colors"
-            >
-              <RotateCcw size={24} />
-            </button>
-          </div>
-
-          {/* Pomodoro Counter */}
-          <div className="mb-8">
-            <div className="text-sm text-gray-600">Completed Pomodoros</div>
-            <div className="text-3xl font-bold text-blue-600">
-              {completedPomodoros}
-            </div>
-          </div>
-
-          {/* Exit Fullscreen */}
-          <button
-            onClick={() => setIsFullscreen(false)}
-            className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-full transition-colors"
-          >
-            <X size={24} />
-          </button>
-
-          {/* Instructions */}
-          <div className="text-sm text-gray-500">
-            <p>
-              Press{" "}
-              <kbd className="px-2 py-1 bg-white rounded text-xs">Space</kbd> to
-              start/pause
-            </p>
-            <p>
-              Press <kbd className="px-2 py-1 bg-white rounded text-xs">R</kbd>{" "}
-              to reset
-            </p>
-            <p>
-              Press{" "}
-              <kbd className="px-2 py-1 bg-white rounded text-xs">Esc</kbd> to
-              exit fullscreen
-            </p>
-            <p>Double-click timer to edit duration</p>
-          </div>
-        </div>
-      </div>
+      <FullscreenTimer
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        timeLeft={timeLeft}
+        isRunning={isRunning}
+        currentMode={currentMode}
+        completedPomodoros={completedPomodoros}
+        currentProject={currentProject}
+        currentCategory={currentCategory}
+        onStart={startTimer}
+        onPause={pauseTimer}
+        onReset={resetTimer}
+        onDurationEdit={handleDurationEdit}
+        formatTime={formatTime}
+        getModeLabel={getModeLabel}
+      />
     );
   }
 
@@ -426,7 +334,7 @@ const Timer: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[600px] p-8">
       {/* Project and Category Display */}
-      <div 
+      <div
         className="text-center mb-8"
         ref={(el) => {
           if (el) fadeIn(el, 0.1);
@@ -462,7 +370,7 @@ const Timer: React.FC = () => {
       </div>
 
       {/* Timer Label */}
-      <div 
+      <div
         className="text-center mb-8"
         ref={(el) => {
           if (el) fadeIn(el, 0.3);
@@ -479,16 +387,13 @@ const Timer: React.FC = () => {
           <div
             ref={progressBarRef}
             className="bg-blue-600 h-2 rounded-full"
-            style={{ width: '0%' }}
+            style={{ width: "0%" }}
           />
         </div>
       </div>
 
       {/* Controls with enhanced animations */}
-      <div 
-        ref={controlsRef}
-        className="flex items-center space-x-4 mb-8"
-      >
+      <div ref={controlsRef} className="flex items-center space-x-4 mb-8">
         {isRunning ? (
           <button
             onClick={handlePauseClick}
@@ -517,7 +422,7 @@ const Timer: React.FC = () => {
       </div>
 
       {/* Mode Selector with enhanced animations */}
-      <div 
+      <div
         ref={modeSelectorRef}
         className="flex space-x-2 bg-white rounded-lg p-1 shadow-sm border mb-8"
       >
@@ -554,10 +459,7 @@ const Timer: React.FC = () => {
       </div>
 
       {/* Pomodoro Counter with enhanced animations */}
-      <div 
-        ref={pomodoroCounterRef}
-        className="text-center mb-8"
-      >
+      <div ref={pomodoroCounterRef} className="text-center mb-8">
         <div className="text-sm text-gray-500">Completed Pomodoros</div>
         <div className="text-2xl font-bold text-blue-600">
           {completedPomodoros}
@@ -579,44 +481,35 @@ const Timer: React.FC = () => {
       </div>
 
       {/* Duration Edit Modal */}
-      {isEditingDuration && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Edit Timer Duration
-            </h3>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (minutes)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={editingMinutes}
-                onChange={(e) =>
-                  setEditingMinutes(parseInt(e.target.value) || 25)
-                }
-                className="input text-center text-2xl font-mono"
-                autoFocus
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={handleDurationCancel}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button onClick={handleDurationSave} className="btn btn-primary">
-                Save
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={isEditingDuration}
+        onClose={handleDurationCancel}
+        title="Edit Timer Duration"
+      >
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Duration (minutes)
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="120"
+            value={editingMinutes}
+            onChange={(e) => setEditingMinutes(parseInt(e.target.value) || 25)}
+            className="input text-center text-2xl font-mono"
+            autoFocus
+          />
         </div>
-      )}
+
+        <div className="flex justify-end space-x-3">
+          <button onClick={handleDurationCancel} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button onClick={handleDurationSave} className="btn btn-primary">
+            Save
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

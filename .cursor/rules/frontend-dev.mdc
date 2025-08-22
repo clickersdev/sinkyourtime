@@ -88,5 +88,6 @@ Follow these rules when you write code:
 **Agent Guidelines**
 
 - Always look up the latest documentation every time you even doubt that the library you are referencing from your training data might be outdated.
+- After finishing your job as an agent, generate a git commit command with a descriptive message. DO NOT RUN THIS COMMAND, JUST GENERATE IT.
 
 ---

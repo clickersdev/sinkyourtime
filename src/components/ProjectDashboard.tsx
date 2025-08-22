@@ -18,7 +18,9 @@ import {
   fadeIn,
   fadeOut,
   slideInFromLeft,
+  staggerContentIn,
 } from "../utils/animations";
+import Modal from "./Modal";
 import toast from "react-hot-toast";
 
 const ProjectDashboard: React.FC = () => {
@@ -199,24 +201,10 @@ const ProjectDashboard: React.FC = () => {
   // Enhanced modal animations
   const openCreateForm = () => {
     setShowCreateForm(true);
-    // Animate modal in
-    setTimeout(() => {
-      const modal = document.querySelector(".create-project-modal");
-      if (modal) {
-        scaleIn(modal as HTMLElement);
-      }
-    }, 10);
   };
 
   const closeCreateForm = () => {
-    const modal = document.querySelector(".create-project-modal");
-    if (modal) {
-      fadeOut(modal as HTMLElement).then(() => {
-        setShowCreateForm(false);
-      });
-    } else {
-      setShowCreateForm(false);
-    }
+    setShowCreateForm(false);
   };
 
   // Handle keyboard events for delete modal
@@ -478,151 +466,136 @@ const ProjectDashboard: React.FC = () => {
       )}
 
       {/* Create Project Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="create-project-modal bg-white rounded-lg p-6 w-full max-w-md"
-            style={{ opacity: 0, transform: "scale(0.9)" }}
-          >
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Create New Project
-            </h3>
+      <Modal
+        isOpen={showCreateForm}
+        onClose={closeCreateForm}
+        title="Create New Project"
+      >
+        <form onSubmit={handleCreateProject}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Project Name *
+              </label>
+              <input
+                type="text"
+                value={newProject.name}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, name: e.target.value })
+                }
+                className="input"
+                placeholder="Enter project name"
+                required
+              />
+            </div>
 
-            <form onSubmit={handleCreateProject}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newProject.name}
-                    onChange={(e) =>
-                      setNewProject({ ...newProject, name: e.target.value })
-                    }
-                    className="input"
-                    placeholder="Enter project name"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                value={newProject.description}
+                onChange={(e) =>
+                  setNewProject({
+                    ...newProject,
+                    description: e.target.value,
+                  })
+                }
+                className="input"
+                rows={3}
+                placeholder="Enter project description"
+              />
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={newProject.description}
-                    onChange={(e) =>
-                      setNewProject({
-                        ...newProject,
-                        description: e.target.value,
-                      })
-                    }
-                    className="input"
-                    rows={3}
-                    placeholder="Enter project description"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Color
-                  </label>
-                  <input
-                    type="color"
-                    value={newProject.color}
-                    onChange={(e) =>
-                      setNewProject({ ...newProject, color: e.target.value })
-                    }
-                    className="w-full h-10 rounded-lg border border-gray-300"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeCreateForm();
-                    setNewProject({
-                      name: "",
-                      description: "",
-                      color: "#3b82f6",
-                    });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Create
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Color
+              </label>
+              <input
+                type="color"
+                value={newProject.color}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, color: e.target.value })
+                }
+                className="w-full h-10 rounded-lg border border-gray-300"
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                closeCreateForm();
+                setNewProject({
+                  name: "",
+                  description: "",
+                  color: "#3b82f6",
+                });
+              }}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Create
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && projectToDelete && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={cancelDeleteProject}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-            style={{ opacity: 0, y: 20 }}
-            ref={(el) => {
-              if (el) fadeIn(el);
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center mb-4 text-red-600">
-              <AlertTriangle size={24} />
-              <h3 className="ml-2 text-lg font-medium">Confirm Deletion</h3>
-            </div>
-            <p className="text-gray-800 mb-4">
-              Are you sure you want to delete the project "
-              {projectToDelete.project.name}"? This action cannot be undone.
-            </p>
-            {projectToDelete.stats.sessions > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center text-red-800 mb-2">
-                  <AlertTriangle size={16} className="mr-2" />
-                  <span className="font-medium">Data will be lost:</span>
-                </div>
-                <ul className="text-sm text-red-700 space-y-1">
-                  <li>
-                    • {projectToDelete.stats.sessions} work session
-                    {projectToDelete.stats.sessions !== 1 ? "s" : ""}
-                  </li>
-                  <li>
-                    • {formatTime(projectToDelete.stats.totalTime)} of tracked
-                    time
-                  </li>
-                  <li>• All project categories and settings</li>
-                </ul>
-              </div>
-            )}
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={cancelDeleteProject}
-                className="btn btn-secondary"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeleteProject}
-                className="btn btn-danger"
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={showDeleteModal && !!projectToDelete}
+        onClose={cancelDeleteProject}
+        title=""
+        className="max-w-md"
+      >
+        <div className="flex items-center mb-4 text-red-600">
+          <AlertTriangle size={24} />
+          <h3 className="ml-2 text-lg font-medium">Confirm Deletion</h3>
         </div>
-      )}
+        <p className="text-gray-800 mb-4">
+          Are you sure you want to delete the project "
+          {projectToDelete?.project.name}"? This action cannot be undone.
+        </p>
+        {projectToDelete?.stats.sessions &&
+          projectToDelete.stats.sessions > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center text-red-800 mb-2">
+                <AlertTriangle size={16} className="mr-2" />
+                <span className="font-medium">Data will be lost:</span>
+              </div>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>
+                  • {projectToDelete.stats.sessions} work session
+                  {projectToDelete.stats.sessions !== 1 ? "s" : ""}
+                </li>
+                <li>
+                  • {formatTime(projectToDelete.stats.totalTime)} of tracked
+                  time
+                </li>
+                <li>• All project categories and settings</li>
+              </ul>
+            </div>
+          )}
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={cancelDeleteProject}
+            className="btn btn-secondary"
+            disabled={isDeleting}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmDeleteProject}
+            className="btn btn-danger"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
