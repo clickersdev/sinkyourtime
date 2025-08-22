@@ -11,6 +11,10 @@ export const ANIMATION_PRESETS = {
 
 // Common animation functions
 export const fadeIn = (element: HTMLElement, delay = 0) => {
+  // Check if element has already been animated
+  if (hasAnimated(element)) return;
+
+  markAsAnimated(element);
   return gsap.fromTo(
     element,
     { opacity: 0, y: 20 },
@@ -28,6 +32,10 @@ export const fadeOut = (element: HTMLElement, delay = 0) => {
 };
 
 export const slideInFromLeft = (element: HTMLElement, delay = 0) => {
+  // Check if element has already been animated
+  if (hasAnimated(element)) return;
+
+  markAsAnimated(element);
   return gsap.fromTo(
     element,
     { x: -50, opacity: 0 },
@@ -44,6 +52,10 @@ export const slideInFromRight = (element: HTMLElement, delay = 0) => {
 };
 
 export const scaleIn = (element: HTMLElement, delay = 0) => {
+  // Check if element has already been animated
+  if (hasAnimated(element)) return;
+
+  markAsAnimated(element);
   return gsap.fromTo(
     element,
     { scale: 0.8, opacity: 0 },
@@ -53,11 +65,11 @@ export const scaleIn = (element: HTMLElement, delay = 0) => {
 
 export const pulse = (element: HTMLElement) => {
   return gsap.to(element, {
-    scale: 1.05,
-    duration: 0.2,
+    scale: 0.95,
+    duration: 0.1,
+    ease: "power2.out",
     yoyo: true,
     repeat: 1,
-    ease: "power2.inOut",
   });
 };
 
@@ -196,10 +208,31 @@ export const pageExit = (element: HTMLElement) => {
   });
 };
 
+// Animation state management
+const animatedElements = new WeakSet<HTMLElement>();
+
+// Helper function to check if element has been animated
+export const hasAnimated = (element: HTMLElement): boolean => {
+  return animatedElements.has(element);
+};
+
+// Helper function to mark element as animated
+export const markAsAnimated = (element: HTMLElement): void => {
+  animatedElements.add(element);
+};
+
 // Staggered content animations
 export const staggerContentIn = (elements: HTMLElement[], stagger = 0.08) => {
+  // Filter out elements that have already been animated
+  const unanimatedElements = elements.filter((el) => !hasAnimated(el));
+
+  if (unanimatedElements.length === 0) return;
+
+  // Mark elements as animated
+  unanimatedElements.forEach(markAsAnimated);
+
   return gsap.fromTo(
-    elements,
+    unanimatedElements,
     {
       opacity: 0,
       y: 25,

@@ -75,12 +75,19 @@ const ProjectDashboard: React.FC = () => {
     }
   }, []);
 
-  // Animate project cards when they load
+  // Animate project cards only on initial load
   useEffect(() => {
     if (projectCardsRef.current.length > 0) {
-      staggerFadeIn(projectCardsRef.current, 0.1);
+      // Only animate on mount, not on every projects change
+      const hasAnimated = projectCardsRef.current[0]?.dataset.animated;
+      if (!hasAnimated) {
+        projectCardsRef.current.forEach((card) => {
+          if (card) card.dataset.animated = "true";
+        });
+        staggerFadeIn(projectCardsRef.current, 0.1);
+      }
     }
-  }, [activeProjects]);
+  }, []); // Empty dependency array - only run on mount
 
   const loadProjectStats = async () => {
     try {

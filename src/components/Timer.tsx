@@ -191,12 +191,8 @@ const Timer: React.FC = () => {
     }
   }, []);
 
-  // Animate timer display when time changes
-  useEffect(() => {
-    if (timerDisplayRef.current && isRunning) {
-      timerPulse(timerDisplayRef.current);
-    }
-  }, [timeLeft, isRunning]);
+  // Remove continuous timer pulsing to prevent animation spam
+  // Timer will only animate on initial load and user interactions
 
   // Animate progress bar
   useEffect(() => {
@@ -278,13 +274,18 @@ const Timer: React.FC = () => {
   };
 
   const handleResetClick = () => {
-    if (controlsRef.current) {
-      gsap.to(controlsRef.current, {
+    // Find the reset button icon and animate just that
+    const resetButton = controlsRef.current?.querySelector('button:last-child');
+    const resetIcon = resetButton?.querySelector('svg');
+    
+    if (resetIcon) {
+      gsap.to(resetIcon, {
         rotation: 360,
-        duration: 0.5,
+        duration: 0.4,
         ease: "power2.out",
       });
     }
+    
     resetTimer();
   };
 

@@ -45,7 +45,7 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
       // Prevent body scroll when fullscreen is open
       document.body.style.overflow = "hidden";
 
-      // Animate in
+      // Animate in only when opening
       if (timerDisplayRef.current) {
         fadeIn(timerDisplayRef.current, 0.1);
       }
@@ -78,13 +78,18 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
   };
 
   const handleResetClick = () => {
-    if (controlsRef.current) {
-      gsap.to(controlsRef.current, {
+    // Find the reset button icon and animate just that
+    const resetButton = controlsRef.current?.querySelector('button:last-child');
+    const resetIcon = resetButton?.querySelector('svg');
+    
+    if (resetIcon) {
+      gsap.to(resetIcon, {
         rotation: 360,
-        duration: 0.5,
+        duration: 0.4,
         ease: "power2.out",
       });
     }
+    
     onReset();
   };
 
@@ -98,7 +103,11 @@ const FullscreenTimer: React.FC<FullscreenTimerProps> = ({
           <div
             className="mb-8"
             ref={(el) => {
-              if (el) fadeIn(el, 0.1);
+              // Only animate on mount, not on every re-render
+              if (el && !el.dataset.animated) {
+                el.dataset.animated = "true";
+                fadeIn(el, 0.1);
+              }
             }}
           >
             <div className="flex items-center justify-center space-x-3 mb-2">
