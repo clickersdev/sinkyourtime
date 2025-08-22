@@ -1,5 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, Save } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Save,
+  Maximize2,
+  Minimize2,
+  Settings,
+  Target,
+  Clock,
+  Coffee,
+  Zap,
+  AlertCircle,
+  CheckCircle,
+  X,
+  Edit3,
+  Download,
+  Share2,
+} from "lucide-react";
 import { gsap } from "gsap";
 import { useTimerStore } from "../stores/timerStore";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -9,6 +27,7 @@ import {
   scaleIn,
   fadeIn,
   buttonPress,
+  slideInUp,
 } from "../utils/animations";
 import Modal from "./Modal";
 import FullscreenTimer from "./FullscreenTimer";
@@ -36,6 +55,7 @@ const Timer: React.FC = () => {
     setCategory,
     updateTimeLeft,
     updateTotalTime,
+    clearCurrentSession,
   } = useTimerStore();
 
   const { settings } = useSettingsStore();
@@ -49,12 +69,15 @@ const Timer: React.FC = () => {
   const controlsRef = useRef<HTMLDivElement>(null);
   const modeSelectorRef = useRef<HTMLDivElement>(null);
   const pomodoroCounterRef = useRef<HTMLDivElement>(null);
+  const sessionInfoRef = useRef<HTMLDivElement>(null);
 
-  // Fullscreen and editing states
+  // State management
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEditingDuration, setIsEditingDuration] = useState(false);
   const [editingMinutes, setEditingMinutes] = useState(25);
   const [isSavingSession, setIsSavingSession] = useState(false);
+  const [showSessionInfo, setShowSessionInfo] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   // Format time display
   const formatTime = (seconds: number) => {
@@ -72,7 +95,14 @@ const Timer: React.FC = () => {
       .padStart(2, "0")}`;
   };
 
-  const progress = ((totalTime - timeLeft) / totalTime) * 100;
+  // Memoized calculations
+  const progress = useMemo(() => ((totalTime - timeLeft) / totalTime) * 100, [totalTime, timeLeft]);
+  
+  const sessionDuration = useMemo(() => {
+    if (!sessionStartTime) return 0;
+    const now = isRunning ? new Date() : new Date();
+    return Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000);
+  }, [sessionStartTime, isRunning]);
 
   const getModeLabel = () => {
     switch (currentMode) {
@@ -84,6 +114,32 @@ const Timer: React.FC = () => {
         return "Long Break";
       default:
         return "Work Time";
+    }
+  };
+
+  const getModeIcon = () => {
+    switch (currentMode) {
+      case "work":
+        return <Target className="w-5 h-5" />;
+      case "short_break":
+        return <Coffee className="w-5 h-5" />;
+      case "long_break":
+        return <Zap className="w-5 h-5" />;
+      default:
+        return <Target className="w-5 h-5" />;
+    }
+  };
+
+  const getModeColor = () => {
+    switch (currentMode) {
+      case "work":
+        return "from-blue-500 to-blue-600";
+      case "short_break":
+        return "from-green-500 to-green-600";
+      case "long_break":
+        return "from-purple-500 to-purple-600";
+      default:
+        return "from-blue-500 to-blue-600";
     }
   };
 
@@ -110,10 +166,16 @@ const Timer: React.FC = () => {
 
       if (shouldTakeLongBreak) {
         setMode("long_break");
-        toast.success("Work session complete! Time for a long break.");
+        toast.success("Work session complete! Time for a long break.", {
+          icon: "🎉",
+          duration: 4000,
+        });
       } else {
         setMode("short_break");
-        toast.success("Work session complete! Time for a short break.");
+        toast.success("Work session complete! Time for a short break.", {
+          icon: "☕",
+          duration: 4000,
+        });
       }
 
       // Auto-start break if enabled
@@ -124,7 +186,10 @@ const Timer: React.FC = () => {
       }
     } else {
       setMode("work");
-      toast.success("Break complete! Ready to work?");
+      toast.success("Break complete! Ready to work?", {
+        icon: "💪",
+        duration: 4000,
+      });
     }
 
     // Play notification sound
@@ -150,7 +215,6 @@ const Timer: React.FC = () => {
     }
   };
 
-  // New: Handle manual session save
   const handleSaveSession = async () => {
     if (!sessionStartTime) {
       toast.error("No active session to save");
@@ -165,13 +229,22 @@ const Timer: React.FC = () => {
     setIsSavingSession(true);
     try {
       await saveCurrentSession();
-      toast.success("Session saved successfully!");
+      toast.success("Session saved successfully!", {
+        icon: "✅",
+      });
     } catch (error) {
       console.error("Error saving session:", error);
       toast.error("Failed to save session");
     } finally {
       setIsSavingSession(false);
     }
+  };
+
+  const handleClearSession = () => {
+    clearCurrentSession();
+    toast.success("Session cleared", {
+      icon: "🗑️",
+    });
   };
 
   const playNotificationSound = () => {
@@ -215,10 +288,10 @@ const Timer: React.FC = () => {
     if (pomodoroCounterRef.current) {
       fadeIn(pomodoroCounterRef.current, 0.6);
     }
+    if (sessionInfoRef.current) {
+      slideInUp(sessionInfoRef.current, 0.8);
+    }
   }, []);
-
-  // Remove continuous timer pulsing to prevent animation spam
-  // Timer will only animate on initial load and user interactions
 
   // Animate progress bar
   useEffect(() => {
@@ -227,12 +300,11 @@ const Timer: React.FC = () => {
     }
   }, [progress]);
 
-  // Handle fullscreen mode - only enter fullscreen when starting, don't exit when pausing
+  // Handle fullscreen mode
   useEffect(() => {
     if (isRunning && !isFullscreen) {
       setIsFullscreen(true);
     }
-    // Removed automatic exit when pausing - user now has full control
   }, [isRunning]);
 
   // Timer interval effect
@@ -258,14 +330,12 @@ const Timer: React.FC = () => {
       selectedProject &&
       (!currentProject || selectedProject.id !== currentProject.id)
     ) {
-      console.log("Setting project in timer store:", selectedProject);
       setProject(selectedProject);
     }
     if (
       selectedCategory &&
       (!currentCategory || selectedCategory.id !== currentCategory.id)
     ) {
-      console.log("Setting category in timer store:", selectedCategory);
       setCategory(selectedCategory);
     }
   }, [selectedProject, selectedCategory, currentProject, currentCategory]);
@@ -287,6 +357,8 @@ const Timer: React.FC = () => {
         handleSaveSession();
       } else if (e.code === "Escape" && isFullscreen) {
         setIsFullscreen(false);
+      } else if (e.code === "KeyF") {
+        setIsFullscreen(!isFullscreen);
       }
     };
 
@@ -316,7 +388,6 @@ const Timer: React.FC = () => {
   };
 
   const handleResetClick = () => {
-    // Find the reset button icon and animate just that
     const resetButton = controlsRef.current?.querySelector("button:last-child");
     const resetIcon = resetButton?.querySelector("svg");
 
@@ -344,7 +415,9 @@ const Timer: React.FC = () => {
     updateTotalTime(newTotalTime);
     updateTimeLeft(newTotalTime);
     setIsEditingDuration(false);
-    toast.success("Timer duration updated!");
+    toast.success("Timer duration updated!", {
+      icon: "⚙️",
+    });
   };
 
   const handleDurationCancel = () => {
@@ -376,6 +449,75 @@ const Timer: React.FC = () => {
   // Regular timer layout
   return (
     <div className="flex flex-col items-center justify-center min-h-[600px] p-8">
+      {/* Session Info Panel */}
+      {sessionStartTime && (
+        <div
+          ref={sessionInfoRef}
+          className="w-full max-w-2xl mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+        >
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    Active Session
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Started {sessionStartTime.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSessionInfo(!showSessionInfo)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                {showSessionInfo ? <X size={16} /> : <Settings size={16} />}
+              </button>
+            </div>
+          </div>
+          
+          {showSessionInfo && (
+            <div className="px-6 py-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Session Duration</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {formatTime(sessionDuration)}
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Time Remaining</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {formatTime(timeLeft)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleSaveSession}
+                  disabled={isSavingSession}
+                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save size={16} />
+                  <span>{isSavingSession ? "Saving..." : "Save Session"}</span>
+                </button>
+                <button
+                  onClick={handleClearSession}
+                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <X size={16} />
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Project and Category Display */}
       <div
         className="text-center mb-8"
@@ -384,65 +526,80 @@ const Timer: React.FC = () => {
         }}
       >
         {currentProject && (
-          <div className="flex items-center justify-center space-x-2 mb-2">
+          <div className="flex items-center justify-center space-x-3 mb-3">
             <div
-              className="w-4 h-4 rounded-full"
+              className="w-6 h-6 rounded-full shadow-lg"
               style={{ backgroundColor: currentProject.color }}
             />
-            <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {currentProject.name}
             </span>
-          </div>
-        )}
-        {currentCategory && (
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {currentCategory.name}
+            {currentCategory && (
+              <>
+                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                <span className="text-lg text-gray-600 dark:text-gray-400">
+                  {currentCategory.name}
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
 
-      {/* Timer Display with enhanced animations */}
+      {/* Timer Display */}
       <div className="relative mb-8">
         <div className="text-center">
           <div
             ref={timerDisplayRef}
-            className="timer-digit cursor-pointer hover:opacity-80 transition-opacity"
+            className="timer-digit cursor-pointer hover:opacity-80 transition-opacity group"
             onDoubleClick={handleDurationEdit}
           >
             {formatTime(timeLeft)}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Edit3 className="w-8 h-8 text-gray-400" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Timer Label */}
+      {/* Timer Label with Mode Icon */}
       <div
         className="text-center mb-8"
         ref={(el) => {
           if (el) fadeIn(el, 0.3);
         }}
       >
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          {getModeLabel()}
-        </h2>
-      </div>
-
-      {/* Progress Bar with GSAP animation */}
-      <div className="w-full max-w-md mb-8">
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div
-            ref={progressBarRef}
-            className="bg-blue-600 h-2 rounded-full"
-            style={{ width: "0%" }}
-          />
+        <div className="flex items-center justify-center space-x-3 mb-2">
+          <div className={`p-2 rounded-lg bg-gradient-to-r ${getModeColor()} text-white`}>
+            {getModeIcon()}
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {getModeLabel()}
+          </h2>
         </div>
       </div>
 
-      {/* Controls with enhanced animations */}
+      {/* Progress Bar */}
+      <div className="w-full max-w-md mb-8">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+          <div
+            ref={progressBarRef}
+            className={`h-3 rounded-full bg-gradient-to-r ${getModeColor()} transition-all duration-300`}
+            style={{ width: "0%" }}
+          />
+        </div>
+        <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <span>{formatTime(totalTime - timeLeft)}</span>
+          <span>{formatTime(totalTime)}</span>
+        </div>
+      </div>
+
+      {/* Controls */}
       <div ref={controlsRef} className="flex items-center space-x-4 mb-8">
         {isRunning ? (
           <button
             onClick={handlePauseClick}
-            className="btn btn-primary flex items-center space-x-2"
+            className="btn btn-primary flex items-center space-x-2 bg-red-600 hover:bg-red-700"
           >
             <Pause size={20} />
             <span>Pause</span>
@@ -450,7 +607,7 @@ const Timer: React.FC = () => {
         ) : (
           <button
             onClick={handleStartClick}
-            className="btn btn-primary flex items-center space-x-2"
+            className="btn btn-primary flex items-center space-x-2 bg-green-600 hover:bg-green-700"
           >
             <Play size={20} />
             <span>Start</span>
@@ -465,90 +622,139 @@ const Timer: React.FC = () => {
           <span>Reset</span>
         </button>
 
-        {/* Save Session Button */}
-        {sessionStartTime && (
-          <button
-            onClick={handleSaveSession}
-            disabled={isSavingSession}
-            className="btn btn-secondary flex items-center space-x-2"
-          >
-            <Save size={20} />
-            <span>{isSavingSession ? "Saving..." : "Save Session"}</span>
-          </button>
-        )}
+        <button
+          onClick={() => setIsFullscreen(true)}
+          className="btn btn-secondary flex items-center space-x-2"
+        >
+          <Maximize2 size={20} />
+          <span>Fullscreen</span>
+        </button>
       </div>
 
-      {/* Mode Selector with enhanced animations */}
+      {/* Mode Selector */}
       <div
         ref={modeSelectorRef}
-        className="flex space-x-2 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border dark:border-gray-700 mb-8"
+        className="flex space-x-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border dark:border-gray-700 mb-8"
       >
         <button
           onClick={() => setMode("work")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
             currentMode === "work"
-              ? "bg-blue-600 text-white"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              ? "bg-blue-600 text-white shadow-lg"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
         >
-          Work
+          <Target size={16} />
+          <span>Work</span>
         </button>
         <button
           onClick={() => setMode("short_break")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
             currentMode === "short_break"
-              ? "bg-blue-600 text-white"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              ? "bg-green-600 text-white shadow-lg"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
         >
-          Break
+          <Coffee size={16} />
+          <span>Break</span>
         </button>
         <button
           onClick={() => setMode("long_break")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
             currentMode === "long_break"
-              ? "bg-blue-600 text-white"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              ? "bg-purple-600 text-white shadow-lg"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
         >
-          Long Break
+          <Zap size={16} />
+          <span>Long Break</span>
         </button>
       </div>
 
-      {/* Pomodoro Counter with enhanced animations */}
+      {/* Pomodoro Counter */}
       <div ref={pomodoroCounterRef} className="text-center mb-8">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          Completed Pomodoros
-        </div>
-        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-          {completedPomodoros}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Completed Pomodoros
+          </div>
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {completedPomodoros}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Next long break after {settings.longBreakInterval - (completedPomodoros % settings.longBreakInterval)} more
+          </div>
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="flex items-center space-x-4 mb-8">
+        <button
+          onClick={() => setShowQuickActions(!showQuickActions)}
+          className="flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+        >
+          <Settings size={16} />
+          <span>Quick Actions</span>
+        </button>
+      </div>
+
+      {showQuickActions && (
+        <div className="w-full max-w-md mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleDurationEdit}
+              className="flex items-center space-x-2 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Edit3 size={16} />
+              <span>Edit Duration</span>
+            </button>
+            <button
+              onClick={() => navigator.share && navigator.share({ title: 'Sink Your Time', text: 'Check out my productivity!' })}
+              className="flex items-center space-x-2 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Share2 size={16} />
+              <span>Share Progress</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
-      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>
-          Press{" "}
-          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-            Space
-          </kbd>{" "}
-          to start/pause
-        </p>
-        <p>
-          Press{" "}
-          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-            R
-          </kbd>{" "}
-          to reset
-        </p>
-        <p>
-          Press{" "}
-          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-            Ctrl+S
-          </kbd>{" "}
-          to save session
-        </p>
-        <p>Double-click timer to edit duration</p>
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
+        <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+              Space
+            </kbd>
+            <span>start/pause</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+              R
+            </kbd>
+            <span>reset</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+              F
+            </kbd>
+            <span>fullscreen</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+              Ctrl+S
+            </kbd>
+            <span>save session</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+              Esc
+            </kbd>
+            <span>exit fullscreen</span>
+          </div>
+        </div>
+        <p className="text-xs">Double-click timer to edit duration</p>
       </div>
 
       {/* Duration Edit Modal */}
@@ -557,8 +763,8 @@ const Timer: React.FC = () => {
         onClose={handleDurationCancel}
         title="Edit Timer Duration"
       >
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Duration (minutes)
           </label>
           <input
@@ -567,9 +773,12 @@ const Timer: React.FC = () => {
             max="120"
             value={editingMinutes}
             onChange={(e) => setEditingMinutes(parseInt(e.target.value) || 25)}
-            className="input text-center text-2xl font-mono"
+            className="input text-center text-3xl font-mono w-full"
             autoFocus
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Enter a value between 1 and 120 minutes
+          </p>
         </div>
 
         <div className="flex justify-end space-x-3">
@@ -577,7 +786,7 @@ const Timer: React.FC = () => {
             Cancel
           </button>
           <button onClick={handleDurationSave} className="btn btn-primary">
-            Save
+            Save Changes
           </button>
         </div>
       </Modal>

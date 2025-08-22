@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, Plus, Edit, Trash2 } from "lucide-react";
 import { useProjectStore } from "../stores/projectStore";
+import Modal from "./Modal";
 import type { Project, Category } from "../types";
 
 const ProjectSelector: React.FC = () => {
@@ -328,140 +329,144 @@ const ProjectSelector: React.FC = () => {
       )}
 
       {/* Project Form Modal */}
-      {showProjectForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingProject ? "Edit Project" : "Create New Project"}
-            </h3>
+      <Modal
+        isOpen={showProjectForm}
+        onClose={() => {
+          setShowProjectForm(false);
+          setEditingProject(null);
+          setProjectForm({
+            name: "",
+            description: "",
+            color: "#3b82f6",
+          });
+        }}
+        title={editingProject ? "Edit Project" : "Create New Project"}
+        className="max-w-md"
+      >
+        <form
+          onSubmit={editingProject ? handleUpdateProject : handleCreateProject}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Project Name *
+              </label>
+              <input
+                type="text"
+                value={projectForm.name}
+                onChange={(e) =>
+                  setProjectForm({ ...projectForm, name: e.target.value })
+                }
+                className="input"
+                placeholder="Enter project name"
+                required
+              />
+            </div>
 
-            <form
-              onSubmit={
-                editingProject ? handleUpdateProject : handleCreateProject
-              }
-            >
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={projectForm.name}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, name: e.target.value })
-                    }
-                    className="input"
-                    placeholder="Enter project name"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Description
+              </label>
+              <textarea
+                value={projectForm.description}
+                onChange={(e) =>
+                  setProjectForm({
+                    ...projectForm,
+                    description: e.target.value,
+                  })
+                }
+                className="input"
+                rows={3}
+                placeholder="Enter project description"
+              />
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={projectForm.description}
-                    onChange={(e) =>
-                      setProjectForm({
-                        ...projectForm,
-                        description: e.target.value,
-                      })
-                    }
-                    className="input"
-                    rows={3}
-                    placeholder="Enter project description"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Color
-                  </label>
-                  <input
-                    type="color"
-                    value={projectForm.color}
-                    onChange={(e) =>
-                      setProjectForm({ ...projectForm, color: e.target.value })
-                    }
-                    className="w-full h-10 rounded-lg border border-gray-300"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowProjectForm(false);
-                    setEditingProject(null);
-                    setProjectForm({
-                      name: "",
-                      description: "",
-                      color: "#3b82f6",
-                    });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingProject ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Color
+              </label>
+              <input
+                type="color"
+                value={projectForm.color}
+                onChange={(e) =>
+                  setProjectForm({ ...projectForm, color: e.target.value })
+                }
+                className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setShowProjectForm(false);
+                setEditingProject(null);
+                setProjectForm({
+                  name: "",
+                  description: "",
+                  color: "#3b82f6",
+                });
+              }}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {editingProject ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Category Form Modal */}
-      {showCategoryForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingCategory ? "Edit Category" : "Create New Category"}
-            </h3>
-
-            <form
-              onSubmit={
-                editingCategory ? handleUpdateCategory : handleCreateCategory
-              }
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({ name: e.target.value })}
-                  className="input"
-                  placeholder="Enter category name"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCategoryForm(false);
-                    setEditingCategory(null);
-                    setCategoryForm({ name: "" });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingCategory ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showCategoryForm}
+        onClose={() => {
+          setShowCategoryForm(false);
+          setEditingCategory(null);
+          setCategoryForm({ name: "" });
+        }}
+        title={editingCategory ? "Edit Category" : "Create New Category"}
+        className="max-w-md"
+      >
+        <form
+          onSubmit={
+            editingCategory ? handleUpdateCategory : handleCreateCategory
+          }
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Category Name *
+            </label>
+            <input
+              type="text"
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm({ name: e.target.value })}
+              className="input"
+              placeholder="Enter category name"
+              required
+            />
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setShowCategoryForm(false);
+                setEditingCategory(null);
+                setCategoryForm({ name: "" });
+              }}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {editingCategory ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

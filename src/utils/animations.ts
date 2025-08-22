@@ -51,6 +51,18 @@ export const slideInFromRight = (element: HTMLElement, delay = 0) => {
   );
 };
 
+export const slideInUp = (element: HTMLElement, delay = 0) => {
+  // Check if element has already been animated
+  if (hasAnimated(element)) return;
+
+  markAsAnimated(element);
+  return gsap.fromTo(
+    element,
+    { y: 30, opacity: 0 },
+    { y: 0, opacity: 1, delay, ...ANIMATION_PRESETS.normal }
+  );
+};
+
 export const scaleIn = (element: HTMLElement, delay = 0) => {
   // Check if element has already been animated
   if (hasAnimated(element)) return;

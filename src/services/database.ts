@@ -54,7 +54,6 @@ export async function initializeDatabase() {
         id: "default",
         ...DEFAULT_SETTINGS,
       });
-      console.log("Default settings initialized");
     }
 
     // Check if any projects exist
@@ -73,7 +72,6 @@ export async function initializeDatabase() {
       };
 
       await db.projects.add(defaultProject);
-      console.log("Default project created");
 
       // Add default categories to the default project
       const categoryPromises = DEFAULT_CATEGORIES.map((categoryName) => {
@@ -86,7 +84,6 @@ export async function initializeDatabase() {
       });
 
       await Promise.all(categoryPromises);
-      console.log("Default categories created");
 
       // Update project with categories
       const categories = await db.categories
@@ -94,7 +91,6 @@ export async function initializeDatabase() {
         .equals(defaultProject.id)
         .toArray();
       await db.projects.update(defaultProject.id, { categories });
-      console.log("Database initialization completed");
     }
   } catch (error) {
     console.error("Error initializing database:", error);
@@ -151,7 +147,6 @@ export const projectService = {
       };
 
       await db.projects.add(newProject);
-      console.log("Project created:", newProject.id);
       return newProject;
     } catch (error) {
       console.error("Error creating project:", error);
@@ -162,7 +157,6 @@ export const projectService = {
   async update(id: string, updates: Partial<Project>): Promise<void> {
     try {
       await db.projects.update(id, { ...updates, updatedAt: new Date() });
-      console.log("Project updated:", id);
     } catch (error) {
       console.error("Error updating project:", error);
       throw error;
@@ -172,9 +166,9 @@ export const projectService = {
   async delete(id: string): Promise<void> {
     try {
       await db.projects.delete(id);
+      // Also delete associated categories and sessions
       await db.categories.where("projectId").equals(id).delete();
       await db.timerSessions.where("projectId").equals(id).delete();
-      console.log("Project deleted:", id);
     } catch (error) {
       console.error("Error deleting project:", error);
       throw error;
@@ -184,11 +178,11 @@ export const projectService = {
 
 // Category operations
 export const categoryService = {
-  async getByProjectId(projectId: string): Promise<Category[]> {
+  async getByProject(projectId: string): Promise<Category[]> {
     try {
       return await db.categories.where("projectId").equals(projectId).toArray();
     } catch (error) {
-      console.error("Error getting categories by project id:", error);
+      console.error("Error getting categories by project:", error);
       throw error;
     }
   },
@@ -200,7 +194,6 @@ export const categoryService = {
         id: crypto.randomUUID(),
       };
       await db.categories.add(newCategory);
-      console.log("Category created:", newCategory.id);
       return newCategory;
     } catch (error) {
       console.error("Error creating category:", error);
@@ -211,7 +204,6 @@ export const categoryService = {
   async update(id: string, updates: Partial<Category>): Promise<void> {
     try {
       await db.categories.update(id, updates);
-      console.log("Category updated:", id);
     } catch (error) {
       console.error("Error updating category:", error);
       throw error;
@@ -221,7 +213,6 @@ export const categoryService = {
   async delete(id: string): Promise<void> {
     try {
       await db.categories.delete(id);
-      console.log("Category deleted:", id);
     } catch (error) {
       console.error("Error deleting category:", error);
       throw error;
@@ -229,7 +220,7 @@ export const categoryService = {
   },
 };
 
-// Timer session operations
+// Session operations
 export const sessionService = {
   async getAll(): Promise<TimerSession[]> {
     try {
@@ -249,10 +240,24 @@ export const sessionService = {
     endDate: Date
   ): Promise<TimerSession[]> {
     try {
-      return await db.timerSessions
-        .where("startTime")
-        .between(startDate, endDate)
-        .toArray();
+      // Get all sessions and filter manually for better reliability
+      const allSessions = await db.timerSessions.toArray();
+
+      const filteredSessions = allSessions.filter((session) => {
+        const sessionDate = new Date(session.startTime);
+        const isInRange = sessionDate >= startDate && sessionDate <= endDate;
+
+        if (isInRange) {
+          // Session is in the specified date range
+        }
+
+        return isInRange;
+      });
+
+      return filteredSessions.sort(
+        (a, b) =>
+          new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      );
     } catch (error) {
       console.error("Error getting sessions by date range:", error);
       throw error;
@@ -274,7 +279,6 @@ export const sessionService = {
       };
 
       await db.timerSessions.add(newSession);
-      console.log("Session created:", newSession.id);
       return newSession;
     } catch (error) {
       console.error("Error creating session:", error);
@@ -285,7 +289,6 @@ export const sessionService = {
   async update(id: string, updates: Partial<TimerSession>): Promise<void> {
     try {
       await db.timerSessions.update(id, updates);
-      console.log("Session updated:", id);
     } catch (error) {
       console.error("Error updating session:", error);
       throw error;
@@ -295,14 +298,13 @@ export const sessionService = {
   async delete(id: string): Promise<void> {
     try {
       await db.timerSessions.delete(id);
-      console.log("Session deleted:", id);
     } catch (error) {
       console.error("Error deleting session:", error);
       throw error;
     }
   },
 
-  // New: Get sessions by project
+  // Get sessions by project
   async getByProject(projectId: string): Promise<TimerSession[]> {
     try {
       const sessions = await db.timerSessions
@@ -320,7 +322,7 @@ export const sessionService = {
     }
   },
 
-  // New: Get sessions by category
+  // Get sessions by category
   async getByCategory(categoryId: string): Promise<TimerSession[]> {
     try {
       const sessions = await db.timerSessions
@@ -344,25 +346,16 @@ export const settingsService = {
   async get(): Promise<UserSettings> {
     try {
       const settings = await db.userSettings.get("default");
-      if (!settings) {
-        // If no settings exist, create default ones
-        await db.userSettings.add({
-          id: "default",
-          ...DEFAULT_SETTINGS,
-        });
-        return DEFAULT_SETTINGS;
-      }
-      return settings;
+      return settings || DEFAULT_SETTINGS;
     } catch (error) {
       console.error("Error getting settings:", error);
-      throw error;
+      return DEFAULT_SETTINGS;
     }
   },
 
   async update(updates: Partial<UserSettings>): Promise<void> {
     try {
       await db.userSettings.update("default", updates);
-      console.log("Settings updated");
     } catch (error) {
       console.error("Error updating settings:", error);
       throw error;

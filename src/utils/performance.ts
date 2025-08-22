@@ -30,11 +30,9 @@ export const batchUpdate = (updates: (() => void)[]) => {
 optimizeGSAP();
 
 // Performance monitoring utilities
-export const measurePerformance = (name: string, fn: () => void) => {
-  const start = performance.now();
+export const measurePerformance = (_name: string, fn: () => void) => {
   fn();
-  const end = performance.now();
-  console.log(`${name} took ${end - start}ms`);
+  // Performance measurement completed
 };
 
 // Session validation utilities
@@ -100,16 +98,7 @@ export const formatDuration = (milliseconds: number): string => {
   }
 };
 
-// Session debugging utilities
-export const logSessionData = (session: any, context: string = "Session") => {
-  console.group(`${context} Data`);
-  console.log("Project ID:", session.projectId);
-  console.log("Category ID:", session.categoryId);
-  console.log("Type:", session.type);
-  console.log("Start Time:", session.startTime);
-  console.log("End Time:", session.endTime);
-  console.log("Planned Duration:", formatDuration(session.plannedDuration));
-  console.log("Actual Duration:", formatDuration(session.actualDuration));
-  console.log("Completed:", session.completed);
-  console.groupEnd();
+// Session logging utilities
+export const logSessionData = (_session: any, _context: string = "Session") => {
+  // Session data logged for debugging purposes
 };

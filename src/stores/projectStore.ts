@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { Project, Category } from '../types';
-import { projectService, categoryService } from '../services/database';
+import { create } from "zustand";
+import type { Project, Category } from "../types";
+import { projectService, categoryService } from "../services/database";
 
 interface ProjectStore {
   projects: Project[];
@@ -11,16 +11,46 @@ interface ProjectStore {
 
   // Actions
   loadProjects: () => Promise<void>;
-  createProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createProject: (
+    project: Omit<Project, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   setCurrentProject: (project: Project | null) => void;
   setCurrentCategory: (category: Category | null) => void;
-  createCategory: (category: Omit<Category, 'id'>) => Promise<void>;
+  createCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   clearError: () => void;
 }
+
+// Helper function to get current project ID from localStorage
+const getCurrentProjectIdFromStorage = (): string | null => {
+  try {
+    const stored = localStorage.getItem("currentProjectId");
+    // Validate that the stored value is a valid string
+    if (stored && typeof stored === "string" && stored.trim() !== "") {
+      return stored;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error reading current project ID from localStorage:", error);
+    return null;
+  }
+};
+
+// Helper function to save current project ID to localStorage
+const saveCurrentProjectIdToStorage = (projectId: string | null): void => {
+  try {
+    if (projectId && typeof projectId === "string" && projectId.trim() !== "") {
+      localStorage.setItem("currentProjectId", projectId);
+    } else {
+      localStorage.removeItem("currentProjectId");
+    }
+  } catch (error) {
+    console.error("Error saving current project ID to localStorage:", error);
+  }
+};
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
   projects: [],
@@ -34,19 +64,36 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       const projects = await projectService.getAll();
       set({ projects, isLoading: false });
-      
-      // Set first active project as current if none selected
+
+      // Get the stored current project ID
+      const storedProjectId = getCurrentProjectIdFromStorage();
+
+      // Try to restore the previously selected project
+      if (storedProjectId) {
+        const storedProject = projects.find((p) => p.id === storedProjectId);
+        if (storedProject) {
+          set({ currentProject: storedProject });
+          return;
+        } else {
+          // Stored project not found, will fall back to first active project
+        }
+      }
+
+      // Fallback: Set first active project as current if none selected
       const state = get();
       if (!state.currentProject && projects.length > 0) {
-        const activeProject = projects.find(p => p.status === 'active');
+        const activeProject = projects.find((p) => p.status === "active");
         if (activeProject) {
           set({ currentProject: activeProject });
+          // Save the fallback project ID to localStorage
+          saveCurrentProjectIdToStorage(activeProject.id);
         }
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to load projects',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to load projects",
+        isLoading: false,
       });
     }
   },
@@ -56,14 +103,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       const newProject = await projectService.create(projectData);
       const state = get();
-      set({ 
+      set({
         projects: [...state.projects, newProject],
-        isLoading: false 
+        isLoading: false,
       });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create project',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to create project",
+        isLoading: false,
       });
     }
   },
@@ -73,22 +121,23 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       await projectService.update(id, updates);
       const state = get();
-      const updatedProjects = state.projects.map(project =>
+      const updatedProjects = state.projects.map((project) =>
         project.id === id ? { ...project, ...updates } : project
       );
       set({ projects: updatedProjects, isLoading: false });
-      
+
       // Update current project if it was the one updated
       if (state.currentProject?.id === id) {
-        const updatedProject = updatedProjects.find(p => p.id === id);
+        const updatedProject = updatedProjects.find((p) => p.id === id);
         if (updatedProject) {
           set({ currentProject: updatedProject });
         }
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update project',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to update project",
+        isLoading: false,
       });
     }
   },
@@ -98,23 +147,34 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       await projectService.delete(id);
       const state = get();
-      const filteredProjects = state.projects.filter(project => project.id !== id);
+      const filteredProjects = state.projects.filter(
+        (project) => project.id !== id
+      );
       set({ projects: filteredProjects, isLoading: false });
-      
+
       // Clear current project if it was deleted
       if (state.currentProject?.id === id) {
         set({ currentProject: null, currentCategory: null });
+        // Remove the project ID from localStorage
+        saveCurrentProjectIdToStorage(null);
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete project',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to delete project",
+        isLoading: false,
       });
     }
   },
 
   setCurrentProject: (project) => {
     set({ currentProject: project, currentCategory: null });
+    // Save the selected project ID to localStorage
+    if (project) {
+      saveCurrentProjectIdToStorage(project.id);
+    } else {
+      saveCurrentProjectIdToStorage(null);
+    }
   },
 
   setCurrentCategory: (category) => {
@@ -126,31 +186,34 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       const newCategory = await categoryService.create(categoryData);
       const state = get();
-      
+
       // Update the project with the new category
-      const updatedProjects = state.projects.map(project => {
+      const updatedProjects = state.projects.map((project) => {
         if (project.id === categoryData.projectId) {
           return {
             ...project,
-            categories: [...project.categories, newCategory]
+            categories: [...project.categories, newCategory],
           };
         }
         return project;
       });
-      
+
       set({ projects: updatedProjects, isLoading: false });
-      
+
       // Update current project if it was the one updated
       if (state.currentProject?.id === categoryData.projectId) {
-        const updatedProject = updatedProjects.find(p => p.id === categoryData.projectId);
+        const updatedProject = updatedProjects.find(
+          (p) => p.id === categoryData.projectId
+        );
         if (updatedProject) {
           set({ currentProject: updatedProject });
         }
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create category',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to create category",
+        isLoading: false,
       });
     }
   },
@@ -160,37 +223,40 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       await categoryService.update(id, updates);
       const state = get();
-      
+
       // Update the category in all projects
-      const updatedProjects = state.projects.map(project => ({
+      const updatedProjects = state.projects.map((project) => ({
         ...project,
-        categories: project.categories.map(category =>
+        categories: project.categories.map((category) =>
           category.id === id ? { ...category, ...updates } : category
-        )
+        ),
       }));
-      
+
       set({ projects: updatedProjects, isLoading: false });
-      
+
       // Update current project and category if needed
       if (state.currentProject) {
-        const updatedProject = updatedProjects.find(p => p.id === state.currentProject!.id);
+        const updatedProject = updatedProjects.find(
+          (p) => p.id === state.currentProject!.id
+        );
         if (updatedProject) {
           set({ currentProject: updatedProject });
         }
       }
-      
+
       if (state.currentCategory?.id === id) {
         const updatedCategory = updatedProjects
-          .flatMap(p => p.categories)
-          .find(c => c.id === id);
+          .flatMap((p) => p.categories)
+          .find((c) => c.id === id);
         if (updatedCategory) {
           set({ currentCategory: updatedCategory });
         }
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update category',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to update category",
+        isLoading: false,
       });
     }
   },
@@ -200,36 +266,39 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       await categoryService.delete(id);
       const state = get();
-      
+
       // Remove the category from all projects
-      const updatedProjects = state.projects.map(project => ({
+      const updatedProjects = state.projects.map((project) => ({
         ...project,
-        categories: project.categories.filter(category => category.id !== id)
+        categories: project.categories.filter((category) => category.id !== id),
       }));
-      
+
       set({ projects: updatedProjects, isLoading: false });
-      
+
       // Update current project if needed
       if (state.currentProject) {
-        const updatedProject = updatedProjects.find(p => p.id === state.currentProject!.id);
+        const updatedProject = updatedProjects.find(
+          (p) => p.id === state.currentProject!.id
+        );
         if (updatedProject) {
           set({ currentProject: updatedProject });
         }
       }
-      
+
       // Clear current category if it was deleted
       if (state.currentCategory?.id === id) {
         set({ currentCategory: null });
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete category',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to delete category",
+        isLoading: false,
       });
     }
   },
 
   clearError: () => {
     set({ error: null });
-  }
+  },
 }));

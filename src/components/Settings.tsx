@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Save, RotateCcw } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
+import { applyTheme } from "../utils/theme";
 import Modal from "./Modal";
 
 interface SettingsProps {
@@ -75,6 +76,12 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       ...prev,
       [field]: value,
     }));
+
+    // Apply theme immediately if theme is changed
+    if (field === "theme") {
+      const themeValue = value as "light" | "dark" | "system";
+      applyTheme(themeValue);
+    }
   };
 
   return (
@@ -84,8 +91,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       title="Settings"
       className="max-w-md max-h-[90vh] overflow-y-auto"
     >
-      {/* Content */}
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
             {error}
@@ -247,14 +253,27 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               <option value="system">System</option>
             </select>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Choose your preferred theme
+              Choose your preferred theme (applied immediately)
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              Current theme: {formData.theme}
             </p>
           </div>
         </div>
+
+        {/* Development Tools */}
+        {import.meta.env.DEV && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+              Development Tools
+            </h3>
+            <div className="space-y-3"></div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={handleReset}
           className="btn btn-secondary flex items-center space-x-2"

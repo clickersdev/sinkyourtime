@@ -23,10 +23,11 @@ import SettingsComponent from "./components/Settings";
 import ProjectDashboard from "./components/ProjectDashboard";
 import ProjectOverview from "./components/ProjectOverview";
 import PageTransition from "./components/PageTransition";
+import Modal from "./components/Modal";
 import { useProjectStore } from "./stores/projectStore";
 import { useSettingsStore } from "./stores/settingsStore";
 import { initializeDatabase } from "./services/database";
-import { initializeTheme, toggleTheme, getCurrentTheme } from "./utils/theme";
+import { initializeTheme } from "./utils/theme";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -87,17 +88,6 @@ const Navigation: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Theme toggle button for testing */}
-              <button
-                onClick={() => {
-                  console.log("Current theme:", getCurrentTheme());
-                  toggleTheme();
-                }}
-                className="px-3 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                Toggle Theme
-              </button>
-
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 const Icon = item.icon;
@@ -138,16 +128,27 @@ const Navigation: React.FC = () => {
 
 const ProjectDetailPage: React.FC = () => {
   const { projectId } = useParams();
-  const { projects, currentProject, setCurrentProject } = useProjectStore();
+  const { projects, currentProject, setCurrentProject, loadProjects } =
+    useProjectStore();
+
+  // Ensure projects are loaded
+  useEffect(() => {
+    if (projects.length === 0) {
+      loadProjects();
+    }
+  }, [projects.length, loadProjects]);
 
   useEffect(() => {
-    if (projectId) {
+    if (projectId && projects.length > 0) {
       const project = projects.find((p) => p.id === projectId);
       if (project) {
-        setCurrentProject(project);
+        // Only set the current project if it's different from the current one
+        if (!currentProject || currentProject.id !== projectId) {
+          setCurrentProject(project);
+        }
       }
     }
-  }, [projectId, projects, setCurrentProject]);
+  }, [projectId, projects, setCurrentProject, currentProject]);
 
   if (!currentProject) {
     return (
@@ -194,16 +195,27 @@ const ProjectDetailPage: React.FC = () => {
 
 const ProjectAnalyticsPage: React.FC = () => {
   const { projectId } = useParams();
-  const { projects, currentProject, setCurrentProject } = useProjectStore();
+  const { projects, currentProject, setCurrentProject, loadProjects } =
+    useProjectStore();
+
+  // Ensure projects are loaded
+  useEffect(() => {
+    if (projects.length === 0) {
+      loadProjects();
+    }
+  }, [projects.length, loadProjects]);
 
   useEffect(() => {
-    if (projectId) {
+    if (projectId && projects.length > 0) {
       const project = projects.find((p) => p.id === projectId);
       if (project) {
-        setCurrentProject(project);
+        // Only set the current project if it's different from the current one
+        if (!currentProject || currentProject.id !== projectId) {
+          setCurrentProject(project);
+        }
       }
     }
-  }, [projectId, projects, setCurrentProject]);
+  }, [projectId, projects, setCurrentProject, currentProject]);
 
   if (!currentProject) {
     return (
@@ -240,16 +252,27 @@ const ProjectAnalyticsPage: React.FC = () => {
 
 const ProjectOverviewPage: React.FC = () => {
   const { projectId } = useParams();
-  const { projects, currentProject, setCurrentProject } = useProjectStore();
+  const { projects, currentProject, setCurrentProject, loadProjects } =
+    useProjectStore();
+
+  // Ensure projects are loaded
+  useEffect(() => {
+    if (projects.length === 0) {
+      loadProjects();
+    }
+  }, [projects.length, loadProjects]);
 
   useEffect(() => {
-    if (projectId) {
+    if (projectId && projects.length > 0) {
       const project = projects.find((p) => p.id === projectId);
       if (project) {
-        setCurrentProject(project);
+        // Only set the current project if it's different from the current one
+        if (!currentProject || currentProject.id !== projectId) {
+          setCurrentProject(project);
+        }
       }
     }
-  }, [projectId, projects, setCurrentProject]);
+  }, [projectId, projects, setCurrentProject, currentProject]);
 
   if (!currentProject) {
     return (
@@ -459,52 +482,53 @@ const CategorySelector: React.FC = () => {
       </div>
 
       {/* Category Form Modal */}
-      {showCategoryForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-              {editingCategory ? "Edit Category" : "Create New Category"}
-            </h3>
-
-            <form
-              onSubmit={
-                editingCategory ? handleUpdateCategory : handleCreateCategory
-              }
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({ name: e.target.value })}
-                  className="input"
-                  placeholder="Enter category name"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCategoryForm(false);
-                    setEditingCategory(null);
-                    setCategoryForm({ name: "" });
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingCategory ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showCategoryForm}
+        onClose={() => {
+          setShowCategoryForm(false);
+          setEditingCategory(null);
+          setCategoryForm({ name: "" });
+        }}
+        title={editingCategory ? "Edit Category" : "Create New Category"}
+        className="max-w-md"
+      >
+        <form
+          onSubmit={
+            editingCategory ? handleUpdateCategory : handleCreateCategory
+          }
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Category Name *
+            </label>
+            <input
+              type="text"
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm({ name: e.target.value })}
+              className="input"
+              placeholder="Enter category name"
+              required
+            />
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setShowCategoryForm(false);
+                setEditingCategory(null);
+                setCategoryForm({ name: "" });
+              }}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {editingCategory ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
@@ -562,19 +586,13 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        console.log("Starting app initialization...");
-
         // Initialize database
         await initializeDatabase();
-        console.log("Database initialized successfully");
 
         // Load initial data
-        console.log("Loading projects and settings...");
         await Promise.all([loadProjects(), loadSettings()]);
-        console.log("Projects and settings loaded successfully");
 
         setIsInitialized(true);
-        console.log("App initialization completed");
       } catch (error) {
         console.error("Error initializing app:", error);
         setIsInitialized(true); // Still set to true to show the app

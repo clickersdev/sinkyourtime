@@ -108,14 +108,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
 
   completeSession: async () => {
     const state = get();
-    console.log("Complete session called with state:", {
-      currentProject: state.currentProject,
-      currentCategory: state.currentCategory,
-      sessionStartTime: state.sessionStartTime,
-      currentMode: state.currentMode,
-      totalTime: state.totalTime,
-      timeLeft: state.timeLeft,
-    });
 
     if (
       state.currentProject &&
@@ -143,8 +135,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       logSessionData(session, "Completing Session");
 
       try {
-        const savedSession = await sessionService.create(session);
-        console.log("Session saved successfully:", savedSession);
+        await sessionService.create(session);
       } catch (error) {
         console.error("Error saving session:", error);
       }
@@ -199,8 +190,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     logSessionData(session, "Manually Saving Session");
 
     try {
-      const savedSession = await sessionService.create(session);
-      console.log("Session saved successfully:", savedSession);
+      await sessionService.create(session);
 
       // Clear the current session after saving
       set({
