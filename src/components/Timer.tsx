@@ -10,6 +10,7 @@ import {
   scaleIn,
   fadeIn,
   pulse,
+  buttonPress,
 } from "../utils/animations";
 import Modal from "./Modal";
 import FullscreenTimer from "./FullscreenTimer";
@@ -261,23 +262,23 @@ const Timer: React.FC = () => {
   // Enhanced button click animations
   const handleStartClick = () => {
     if (controlsRef.current) {
-      pulse(controlsRef.current);
+      buttonPress(controlsRef.current);
     }
     startTimer();
   };
 
   const handlePauseClick = () => {
     if (controlsRef.current) {
-      pulse(controlsRef.current);
+      buttonPress(controlsRef.current);
     }
     pauseTimer();
   };
 
   const handleResetClick = () => {
     // Find the reset button icon and animate just that
-    const resetButton = controlsRef.current?.querySelector('button:last-child');
-    const resetIcon = resetButton?.querySelector('svg');
-    
+    const resetButton = controlsRef.current?.querySelector("button:last-child");
+    const resetIcon = resetButton?.querySelector("svg");
+
     if (resetIcon) {
       gsap.to(resetIcon, {
         rotation: 360,
@@ -285,7 +286,7 @@ const Timer: React.FC = () => {
         ease: "power2.out",
       });
     }
-    
+
     resetTimer();
   };
 

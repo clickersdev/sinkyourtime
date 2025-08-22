@@ -73,6 +73,17 @@ export const pulse = (element: HTMLElement) => {
   });
 };
 
+// More responsive button press animation
+export const buttonPress = (element: HTMLElement) => {
+  return gsap.to(element, {
+    scale: 0.92,
+    duration: 0.08,
+    ease: "power3.out",
+    yoyo: true,
+    repeat: 1,
+  });
+};
+
 // Stagger animations for lists
 export const staggerFadeIn = (elements: HTMLElement[], stagger = 0.1) => {
   return gsap.fromTo(
